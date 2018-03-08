@@ -193,7 +193,8 @@ SIMPLVtkBridge::WrappedDataContainerPtr SIMPLVtkBridge::WrapDataContainerAsStruc
         {
           vtkImageData* imageData = dynamic_cast<vtkImageData*>(dataSet.Get());
           WrapImageCellData(imageData);
-          dataSet->DeepCopy(imageData);
+          //dataSet->DeepCopy(imageData);
+          dataSet->GetPointData()->DeepCopy(imageData->GetPointData());
         }
 
         // Set the active cell / point data scalars
@@ -567,8 +568,9 @@ void SIMPLVtkBridge::WrapImageCellData(vtkImageData* dataSet)
   vtkCellData* cellData = dataSet->GetCellData();
   vtkPointData* pointData = dataSet->GetPointData();
 
-  int* dims = dataSet->GetDimensions();
-  int numPoints = (dims[0] + 1) * (dims[1] + 1) * (dims[2]);
+  int* extent = dataSet->GetExtent();
+  int dims[3] = { extent[1] - extent[0], extent[3] - extent[2], extent[5] - extent[4] };
+  int numPoints = (dims[0] + 1) * (dims[1] + 1) * (dims[2] + 1);
 
   int count = cellData->GetNumberOfArrays();
   for(int a = 0; a < count; a++)
@@ -577,8 +579,8 @@ void SIMPLVtkBridge::WrapImageCellData(vtkImageData* dataSet)
     int numComp = cellArray->GetNumberOfComponents();
 
     vtkDataArray* pointArray = cellArray->NewInstance();
-    pointArray->SetNumberOfTuples(numPoints);
     pointArray->SetNumberOfComponents(numComp);
+    pointArray->SetNumberOfTuples(numPoints);
 
     for(int i = 0; i < numPoints; i++)
     {
@@ -588,23 +590,23 @@ void SIMPLVtkBridge::WrapImageCellData(vtkImageData* dataSet)
       }
     }
 
-    pointData->AddArray(pointArray);
-
-    for(int x = 0; x < dims[2] + 1; x++)
+    for(int x = 0; x < dims[0] + 1; x++)
     {
       for(int y = 0; y < dims[1] + 1; y++)
       {
-        for(int z = 0; z < dims[0] + 1; z++)
+        for(int z = 0; z < dims[2]; z++)
         {
           for(int comp = 0; comp < numComp; comp++)
           {
-            int index = x + y * (dims[0] + 1) + z * (dims[1] + 1);
+            int index = x + y * (dims[0] + 1) + z * (dims[0] + 1) * (dims[1] + 1);
             double value = GetTargetPointValue(cellArray, dims, x, y, z, comp);
             pointArray->SetComponent(index, comp, value);
           }
         }
       }
     }
+
+    pointData->AddArray(pointArray);
   }
 }
 
@@ -613,7 +615,7 @@ void SIMPLVtkBridge::WrapImageCellData(vtkImageData* dataSet)
 // -----------------------------------------------------------------------------
 double SIMPLVtkBridge::GetCellValue(vtkDataArray* cellArray, int* dims, int x, int y, int z, int comp)
 {
-  int width = dims[2];
+  int width = dims[0];
   int height = dims[1];
 
   int numTuples = cellArray->GetNumberOfTuples();
@@ -627,14 +629,15 @@ double SIMPLVtkBridge::GetCellValue(vtkDataArray* cellArray, int* dims, int x, i
 // -----------------------------------------------------------------------------
 double SIMPLVtkBridge::GetTargetPointValue(vtkDataArray* cellArray, int* dims, int x, int y, int z, int comp)
 {
-  int numComp = cellArray->GetNumberOfComponents();
-
   bool hasLeft = (x > 0);
   bool hasRight = (x < dims[0] - 1);
+  bool xExists = (x < dims[0]);
   bool hasBot = (y > 0);
   bool hasTop = (y < dims[1] - 1);
+  bool yExists = (y < dims[1]);
   bool hasFront = (z > 0);
   bool hasBack = (z < dims[2] - 1);
+  bool zExists = (z < dims[2]);
 
   int numValues = 0;
   double value = 0;
@@ -645,35 +648,44 @@ double SIMPLVtkBridge::GetTargetPointValue(vtkDataArray* cellArray, int* dims, i
   }
 
   // Check front, back, left, right, top, bottom, back
-  if(hasLeft)
+  if(yExists && zExists)
   {
-    numValues++;
-    value += GetCellValue(cellArray, dims, x - 1, y, z, comp);
+    if(hasLeft)
+    {
+      numValues++;
+      value += GetCellValue(cellArray, dims, x - 1, y, z, comp);
+    }
+    if(hasRight)
+    {
+      numValues++;
+      value += GetCellValue(cellArray, dims, x + 1, y, z, comp);
+    }
   }
-  if(hasRight)
+  if(xExists && zExists)
   {
-    numValues++;
-    value += GetCellValue(cellArray, dims, x + 1, y, z, comp);
+    if(hasBot)
+    {
+      numValues++;
+      value += GetCellValue(cellArray, dims, x, y - 1, z, comp);
+    }
+    if(hasTop)
+    {
+      numValues++;
+      value += GetCellValue(cellArray, dims, x, y + 1, z, comp);
+    }
   }
-  if(hasBot)
+  if(xExists && yExists)
   {
-    numValues++;
-    value += GetCellValue(cellArray, dims, x, y - 1, z, comp);
-  }
-  if(hasTop)
-  {
-    numValues++;
-    value += GetCellValue(cellArray, dims, x, y + 1, z, comp);
-  }
-  if(hasFront)
-  {
-    numValues++;
-    value += GetCellValue(cellArray, dims, x, y, z - 1, comp);
-  }
-  if(hasBack)
-  {
-    numValues++;
-    value += GetCellValue(cellArray, dims, x, y, z + 1, comp);
+    if(hasFront)
+    {
+      numValues++;
+      value += GetCellValue(cellArray, dims, x, y, z - 1, comp);
+    }
+    if(hasBack)
+    {
+      numValues++;
+      value += GetCellValue(cellArray, dims, x, y, z + 1, comp);
+    }
   }
 
   if(numValues != 0)
