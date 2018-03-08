@@ -223,8 +223,36 @@ public:
     return vtkArray;
   }
 
+  static void WrapImageCellData(vtkImageData* dataSet);
+
 protected:
   SIMPLVtkBridge();
+
+  /**
+  * @brief Returns the component value to use for the point data located at the given XYZ coordinate 
+  * based on the provided dimensions
+  * @param cellArray
+  * @param dims
+  * @param x
+  * @param y
+  * @param z
+  * @param comp
+  * @return
+  */
+  static double GetTargetPointValue(vtkDataArray* cellArray, int* dims, int x, int y, int z, int comp);
+
+  /**
+  * @brief Returns the component value of the tuple located at the given XYZ coordinate based on the
+  * provided dimensions
+  * @param cellArray
+  * @param dims
+  * @param x
+  * @param y
+  * @param z
+  * @param comp
+  * @return
+  */
+  static double GetCellValue(vtkDataArray* cellArray, int* dims, int x, int y, int z, int comp);
 
 private:
   SIMPLVtkBridge(const SIMPLVtkBridge&); // Copy Constructor Not Implemented

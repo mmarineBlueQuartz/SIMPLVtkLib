@@ -158,37 +158,43 @@ SIMPLVtkBridge::WrappedDataContainerPtr SIMPLVtkBridge::WrapDataContainerAsStruc
         }
 
         // Create point data from cell data
-        VTK_NEW(vtkCellDataToPointData, cell2Point);
-        cell2Point->SetInputData(dataSet);
-        cell2Point->PassCellDataOn();
-        cell2Point->Update();
-        
-        vtkDataSet* pointDataSet = nullptr;
-        switch(dataSet->GetDataObjectType())
+        //VTK_NEW(vtkCellDataToPointData, cell2Point);
+        //cell2Point->SetInputData(dataSet);
+        //cell2Point->PassCellDataOn();
+        //cell2Point->Update();
+        //
+        //vtkDataSet* pointDataSet = nullptr;
+        //switch(dataSet->GetDataObjectType())
+        //{
+        //case VTK_IMAGE_DATA:
+        //  pointDataSet = cell2Point->GetImageDataOutput();
+        //  break;
+        //case VTK_STRUCTURED_GRID:
+        //  pointDataSet = cell2Point->GetUnstructuredGridOutput();
+        //  break;
+        //case VTK_RECTILINEAR_GRID:
+        //  pointDataSet = cell2Point->GetRectilinearGridOutput();
+        //  break;
+        //case VTK_STRUCTURED_POINTS:
+        //  pointDataSet = cell2Point->GetStructuredPointsOutput();
+        //  break;
+        //case VTK_UNSTRUCTURED_GRID:
+        //  pointDataSet = cell2Point->GetUnstructuredGridOutput();
+        //  break;
+        //case VTK_POLY_DATA:
+        //  pointDataSet = cell2Point->GetPolyDataOutput();
+        //  break;
+        //default:
+        //  pointDataSet = cell2Point->GetOutput();
+        //  break;
+        //}
+        //dataSet->DeepCopy(pointDataSet);
+        if(vtkImageData::SafeDownCast(dataSet))
         {
-        case VTK_IMAGE_DATA:
-          pointDataSet = cell2Point->GetImageDataOutput();
-          break;
-        case VTK_STRUCTURED_GRID:
-          pointDataSet = cell2Point->GetUnstructuredGridOutput();
-          break;
-        case VTK_RECTILINEAR_GRID:
-          pointDataSet = cell2Point->GetRectilinearGridOutput();
-          break;
-        case VTK_STRUCTURED_POINTS:
-          pointDataSet = cell2Point->GetStructuredPointsOutput();
-          break;
-        case VTK_UNSTRUCTURED_GRID:
-          pointDataSet = cell2Point->GetUnstructuredGridOutput();
-          break;
-        case VTK_POLY_DATA:
-          pointDataSet = cell2Point->GetPolyDataOutput();
-          break;
-        default:
-          pointDataSet = cell2Point->GetOutput();
-          break;
+          vtkImageData* imageData = dynamic_cast<vtkImageData*>(dataSet.Get());
+          WrapImageCellData(imageData);
+          dataSet->DeepCopy(imageData);
         }
-        dataSet->DeepCopy(pointDataSet);
 
         // Set the active cell / point data scalars
         if(cellData->GetNumberOfArrays() > 0)
@@ -552,3 +558,127 @@ VTK_PTR(vtkDataArray) SIMPLVtkBridge::WrapIDataArray(IDataArray::Pointer array)
 //
 //  return vtkDataBlob;
 //}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void SIMPLVtkBridge::WrapImageCellData(vtkImageData* dataSet)
+{
+  vtkCellData* cellData = dataSet->GetCellData();
+  vtkPointData* pointData = dataSet->GetPointData();
+
+  int* dims = dataSet->GetDimensions();
+  int numPoints = (dims[0] + 1) * (dims[1] + 1) * (dims[2]);
+
+  int count = cellData->GetNumberOfArrays();
+  for(int a = 0; a < count; a++)
+  {
+    vtkDataArray* cellArray = cellData->GetArray(a);
+    int numComp = cellArray->GetNumberOfComponents();
+
+    vtkDataArray* pointArray = cellArray->NewInstance();
+    pointArray->SetNumberOfTuples(numPoints);
+    pointArray->SetNumberOfComponents(numComp);
+
+    for(int i = 0; i < numPoints; i++)
+    {
+      for(int j = 0; j < numComp; j++)
+      {
+        pointArray->SetComponent(i, j, 0.0);
+      }
+    }
+
+    pointData->AddArray(pointArray);
+
+    for(int x = 0; x < dims[2] + 1; x++)
+    {
+      for(int y = 0; y < dims[1] + 1; y++)
+      {
+        for(int z = 0; z < dims[0] + 1; z++)
+        {
+          for(int comp = 0; comp < numComp; comp++)
+          {
+            int index = x + y * (dims[0] + 1) + z * (dims[1] + 1);
+            double value = GetTargetPointValue(cellArray, dims, x, y, z, comp);
+            pointArray->SetComponent(index, comp, value);
+          }
+        }
+      }
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+double SIMPLVtkBridge::GetCellValue(vtkDataArray* cellArray, int* dims, int x, int y, int z, int comp)
+{
+  int width = dims[2];
+  int height = dims[1];
+
+  int numTuples = cellArray->GetNumberOfTuples();
+  int maxDimIndex = dims[0] * dims[1] * dims[2];
+  int index = x + y * width + z * width * height;
+  return cellArray->GetComponent(index, comp);
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+double SIMPLVtkBridge::GetTargetPointValue(vtkDataArray* cellArray, int* dims, int x, int y, int z, int comp)
+{
+  int numComp = cellArray->GetNumberOfComponents();
+
+  bool hasLeft = (x > 0);
+  bool hasRight = (x < dims[0] - 1);
+  bool hasBot = (y > 0);
+  bool hasTop = (y < dims[1] - 1);
+  bool hasFront = (z > 0);
+  bool hasBack = (z < dims[2] - 1);
+
+  int numValues = 0;
+  double value = 0;
+  if(x < dims[0] && y < dims[1] && z < dims[2])
+  {
+    numValues++;
+    value = GetCellValue(cellArray, dims, x, y, z, comp);
+  }
+
+  // Check front, back, left, right, top, bottom, back
+  if(hasLeft)
+  {
+    numValues++;
+    value += GetCellValue(cellArray, dims, x - 1, y, z, comp);
+  }
+  if(hasRight)
+  {
+    numValues++;
+    value += GetCellValue(cellArray, dims, x + 1, y, z, comp);
+  }
+  if(hasBot)
+  {
+    numValues++;
+    value += GetCellValue(cellArray, dims, x, y - 1, z, comp);
+  }
+  if(hasTop)
+  {
+    numValues++;
+    value += GetCellValue(cellArray, dims, x, y + 1, z, comp);
+  }
+  if(hasFront)
+  {
+    numValues++;
+    value += GetCellValue(cellArray, dims, x, y, z - 1, comp);
+  }
+  if(hasBack)
+  {
+    numValues++;
+    value += GetCellValue(cellArray, dims, x, y, z + 1, comp);
+  }
+
+  if(numValues != 0)
+  {
+    value /= numValues;
+  }
+  return value;
+}
