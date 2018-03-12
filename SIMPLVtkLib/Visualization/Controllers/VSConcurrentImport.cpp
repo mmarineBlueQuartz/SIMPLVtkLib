@@ -49,7 +49,6 @@ VSConcurrentImport::VSConcurrentImport(VSController* controller)
 , m_Controller(controller)
 , m_ImportDataContainerOrderLock(1)
 {
-
 }
 
 // -----------------------------------------------------------------------------
@@ -134,5 +133,7 @@ void VSConcurrentImport::importDataContainer(VSFileNameFilter* fileFilter)
 void VSConcurrentImport::importWrappedDataContainer(VSFileNameFilter* fileFilter, SIMPLVtkBridge::WrappedDataContainerPtr wrappedDc)
 {
   VSSIMPLDataContainerFilter* filter = new VSSIMPLDataContainerFilter(wrappedDc, fileFilter);
+  QThread* thread =  QCoreApplication::instance()->thread();
+  filter->moveToThread(thread);
   m_Controller->getFilterModel()->addFilter(filter);
 }

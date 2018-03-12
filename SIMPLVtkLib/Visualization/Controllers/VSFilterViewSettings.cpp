@@ -88,13 +88,6 @@ VSFilterViewSettings::VSFilterViewSettings(const VSFilterViewSettings& copy)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-VSFilterViewSettings::~VSFilterViewSettings()
-{
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
 VSAbstractFilter* VSFilterViewSettings::getFilter()
 {
   return m_Filter;
@@ -674,7 +667,7 @@ void VSFilterViewSettings::setupImageActors()
 
   m_ActorType = ActorType::Image2D;
 
-  emit requiresRender();
+  updateTransform();
 }
 
 // -----------------------------------------------------------------------------
@@ -747,8 +740,30 @@ void VSFilterViewSettings::updateInputPort(VSAbstractFilter* filter)
   }
   else
   {
-    m_Mapper->SetInputConnection(filter->getTransformedOutputPort());
+    m_Mapper->SetInputConnection(filter->getOutputPort());
+    m_Actor->SetUserTransform(m_Filter->getTransform()->getGlobalTransform());
   }
+  emit requiresRender();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSFilterViewSettings::updateTransform()
+{
+  if(false == (m_Filter && m_Filter->getTransform() && m_Actor))
+  {
+    return;
+  }
+
+  if(ActorType::Image2D == m_ActorType)
+  {
+    VSTransform* transform =  m_Filter->getTransform();
+    m_Actor->SetPosition(transform->getPosition());
+    m_Actor->SetOrientation(transform->getRotation());
+    m_Actor->SetScale(transform->getScale());
+  }
+
   emit requiresRender();
 }
 
@@ -760,14 +775,14 @@ void VSFilterViewSettings::connectFilter(VSAbstractFilter* filter)
   if(m_Filter)
   {
     disconnect(m_Filter, SIGNAL(updatedOutputPort(VSAbstractFilter*)), this, SLOT(updateInputPort(VSAbstractFilter*)));
-    disconnect(filter, SIGNAL(transformChanged()), this, SIGNAL(requiresRender()));
+    disconnect(m_Filter, SIGNAL(transformChanged()), this, SLOT(updateTransform()));
   }
 
   m_Filter = filter;
   if(filter)
   {
     connect(filter, SIGNAL(updatedOutputPort(VSAbstractFilter*)), this, SLOT(updateInputPort(VSAbstractFilter*)));
-    connect(filter, SIGNAL(transformChanged()), this, SIGNAL(requiresRender()));
+    connect(filter, SIGNAL(transformChanged()), this, SLOT(updateTransform()));
 
     if(filter->getArrayNames().size() < 1)
     {

@@ -35,7 +35,9 @@
 
 #include "VSAbstractFilter.h"
 
+#include <QtCore/QCoreApplication>
 #include <QtCore/QString>
+#include <QtCore/QThread>
 
 #include <vtkAlgorithm.h>
 #include <vtkCellData.h>
@@ -60,15 +62,11 @@ VSAbstractFilter::VSAbstractFilter()
   setCheckable(true);
   setCheckState(Qt::Checked);
 
+  QThread* thread = QCoreApplication::instance()->thread();
+  m_Transform->moveToThread(thread);
+
   connect(this, SIGNAL(updatedOutputPort(VSAbstractFilter*)), 
     this, SLOT(connectTransformFilter(VSAbstractFilter*)));
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-VSAbstractFilter::~VSAbstractFilter()
-{
 }
 
 // -----------------------------------------------------------------------------
@@ -400,6 +398,38 @@ void VSAbstractFilter::saveFile(QString fileName)
   writer->SetFileName(fileName.toStdString().c_str());
   writer->SetInputData(output);
   writer->Write();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSAbstractFilter::getConnectedInput()
+{
+  return m_ConnectedInput;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSAbstractFilter::setConnectedInput(bool connected)
+{
+  m_ConnectedInput = connected;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+VTK_PTR(vtkAlgorithmOutput) VSAbstractFilter::getInputPort()
+{
+  return m_InputPort;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSAbstractFilter::setInputPort(VTK_PTR(vtkAlgorithmOutput) inputPort)
+{
+  m_InputPort = inputPort;
 }
 
 // -----------------------------------------------------------------------------
