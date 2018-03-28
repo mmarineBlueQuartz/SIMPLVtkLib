@@ -67,6 +67,24 @@ VSSIMPLDataContainerFilter::VSSIMPLDataContainerFilter(SIMPLVtkBridge::WrappedDa
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+VSSIMPLDataContainerFilter::~VSSIMPLDataContainerFilter()
+{
+  if(m_WrappedDataContainer)
+  {
+    size_t count = m_WrappedDataContainer->m_CellData.size();
+    for(size_t i = 0; i < count; i++)
+    {
+      m_WrappedDataContainer->m_CellData[i]->m_SIMPLArray = nullptr;
+      m_WrappedDataContainer->m_CellData[i]->m_VtkArray = nullptr;
+    }
+    m_WrappedDataContainer->m_CellData.clear();
+    m_WrappedDataContainer = nullptr;
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
 double* VSSIMPLDataContainerFilter::getBounds() const
 {
   return m_WrappedDataContainer->m_DataSet->GetBounds();

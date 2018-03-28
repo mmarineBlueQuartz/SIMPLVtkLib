@@ -39,6 +39,7 @@
 #include <QtWidgets/QMenu>
 
 #include "SIMPLVtkLib/QtWidgets/VSMainWidgetBase.h"
+#include "SIMPLVtkLib/Visualization/VtkWidgets/VSMoveWidget.h"
 
 #include "SIMPLVtkLib/SIMPLVtkLib.h"
 
@@ -160,4 +161,5 @@ private:
   QAction* m_ActionAddSlice = nullptr;
   QAction* m_ActionAddMask = nullptr;
   QAction* m_ActionAddThreshold = nullptr;
+  VSMoveWidget* m_MoveWidget = nullptr;
 };

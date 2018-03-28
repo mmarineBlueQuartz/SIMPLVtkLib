@@ -69,6 +69,8 @@ VSMainWidget::VSMainWidget(QWidget* parent)
   connectViewWidget(viewWidget);
   setActiveView(viewWidget);
 
+  m_MoveWidget = new VSMoveWidget(this, viewWidget);
+
   createFilterMenu();
   connectSlots();
   setCurrentFilter(nullptr);
@@ -191,6 +193,11 @@ void VSMainWidget::setCurrentFilter(VSAbstractFilter* filter)
   // Text
   bool enableText = VSTextFilter::compatibleWithParent(filter);
   m_ActionAddText->setEnabled(enableText);
+
+  if(m_MoveWidget)
+  {
+    m_MoveWidget->setFilter(filter);
+  }
 }
 
 // -----------------------------------------------------------------------------

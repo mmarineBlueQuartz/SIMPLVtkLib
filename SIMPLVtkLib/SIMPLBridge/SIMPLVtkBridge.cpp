@@ -242,7 +242,7 @@ void SIMPLVtkBridge::FinishWrappingDataContainerStruct(WrappedDataContainerPtr w
     return;
   }
 
-  vtkDataSet* dataSet = wrappedDcStruct->m_DataSet;
+  VTK_PTR(vtkDataSet) dataSet = wrappedDcStruct->m_DataSet;
   DataContainer::AttributeMatrixMap_t attrMats = wrappedDcStruct->m_DataContainer->getAttributeMatrices();
 
   for(DataContainer::AttributeMatrixMap_t::Iterator attrMat = attrMats.begin(); attrMat != attrMats.end(); ++attrMat)
@@ -269,7 +269,7 @@ void SIMPLVtkBridge::FinishWrappingDataContainerStruct(WrappedDataContainerPtr w
       cell2Point->PassCellDataOn();
       cell2Point->Update();
 
-      vtkDataSet* pointDataSet = nullptr;
+      VTK_PTR(vtkDataSet) pointDataSet = nullptr;
       switch(dataSet->GetDataObjectType())
       {
       case VTK_IMAGE_DATA:
@@ -295,14 +295,16 @@ void SIMPLVtkBridge::FinishWrappingDataContainerStruct(WrappedDataContainerPtr w
         break;
       }
 
-      vtkPointData* pointData = pointDataSet->GetPointData();
+      dataSet->DeepCopy(pointDataSet);
+
+      // Set the active cell / point data scalars
+      vtkPointData* pointData = dataSet->GetPointData();
       if(pointData->GetNumberOfArrays() > 0)
       {
         pointData->SetActiveScalars(pointData->GetArray(0)->GetName());
       }
-      dataSet->DeepCopy(pointDataSet);
 
-      // Set the active cell / point data scalars
+      cellData = dataSet->GetCellData();
       if(cellData->GetNumberOfArrays() > 0)
       {
         cellData->SetActiveScalars(cellData->GetArray(0)->GetName());

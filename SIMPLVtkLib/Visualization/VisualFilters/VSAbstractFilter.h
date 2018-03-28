@@ -363,7 +363,6 @@ private:
   std::shared_ptr<VSTransform> m_Transform;
   VTK_PTR(vtkTransformFilter) m_TransformFilter;
   VTK_PTR(vtkOutlineFilter) m_OutlineFilter;
-  //VTK_PTR(vtkTransformFilter) m_OutlineTransformFilter;
   QSemaphore m_ChildLock;
   bool m_ConnectedInput = false;
   VTK_PTR(vtkAlgorithmOutput) m_InputPort;

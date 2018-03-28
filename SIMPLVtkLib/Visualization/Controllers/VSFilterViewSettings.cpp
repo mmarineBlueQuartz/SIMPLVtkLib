@@ -90,6 +90,18 @@ VSFilterViewSettings::VSFilterViewSettings(const VSFilterViewSettings& copy)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+VSFilterViewSettings::~VSFilterViewSettings()
+{
+  if(m_LookupTable)
+  {
+    delete m_LookupTable;
+    m_LookupTable = nullptr;
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
 VSAbstractFilter* VSFilterViewSettings::getFilter()
 {
   return m_Filter;
@@ -912,23 +924,6 @@ void VSFilterViewSettings::setSolidColor(double color[3])
 VSFilterViewSettings::Representation VSFilterViewSettings::getRepresentation()
 {
   return m_Representation;
-
-  //vtkActor* actor = getDataSetActor();
-  //if(nullptr == actor)
-  //{
-  //  return Representation::Invalid;
-  //}
-
-  //vtkProperty* property = actor->GetProperty();
-  //Representation rep = static_cast<Representation>(property->GetRepresentation());
-  //int edges = property->GetEdgeVisibility();
-
-  //if(1 == edges && Representation::Surface == rep)
-  //{
-  //  return Representation::SurfaceWithEdges;
-  //}
-
-  //return rep;
 }
 
 // -----------------------------------------------------------------------------

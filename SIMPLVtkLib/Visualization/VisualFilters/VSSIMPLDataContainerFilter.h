@@ -67,7 +67,7 @@ public:
   /**
   * @brief Deconstructor
   */
-  virtual ~VSSIMPLDataContainerFilter() = default;
+  virtual ~VSSIMPLDataContainerFilter();
 
   /**
   * @brief Returns the bounds of the vtkDataSet

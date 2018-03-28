@@ -1,5 +1,5 @@
 /* ============================================================================
-* Copyright (c) 2009-2017 BlueQuartz Software, LLC
+* Copyright (c) 2009-2016 BlueQuartz Software, LLC
 *
 * Redistribution and use in source and binary forms, with or without modification,
 * are permitted provided that the following conditions are met:
@@ -35,19 +35,24 @@
 
 #pragma once
 
-#include <QtCore/QSemaphore>
-#include <QtGui/QStandardItemModel>
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Winconsistent-missing-override"
+#endif
 
-#include "SIMPLVtkLib/Visualization/Controllers/VSFilterViewSettings.h"
+#include <QtCore/QObject>
+
+#include <vtkAxesTransformWidget.h>
+
+#include "SIMPLVtkLib/QtWidgets/VSAbstractViewWidget.h"
+#include "SIMPLVtkLib/Visualization/VisualFilters/VSTransform.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSAbstractFilter.h"
-
 #include "SIMPLVtkLib/SIMPLVtkLib.h"
 
 /**
-* @class VSFilterModel VSFilterModel.h SIMPLVtkLib/QtWidgets/VSFilterModel.h
-* @brief This class handles the visual filter model for the VSController.
+* @class VSMoveWidget VSMoveWidget.h SIMPLVtkLib/Visualization/VtkWidgets/VSMoveWidget.h
+* @brief This class is used to modify a visualization filter's transformation through the 3D interface.
 */
-class SIMPLVtkLib_EXPORT VSFilterModel : public QStandardItemModel
+class SIMPLVtkLib_EXPORT VSMoveWidget : public QObject
 {
   Q_OBJECT
 
@@ -55,70 +60,47 @@ public:
   /**
   * @brief Constructor
   * @param parent
+  * @param viewWidget
   */
-  VSFilterModel(QObject* parent = nullptr);
+  VSMoveWidget(QObject* parent, VSAbstractViewWidget* viewWidget);
 
   /**
   * @brief Deconstructor
   */
-  virtual ~VSFilterModel() = default;
+  virtual ~VSMoveWidget() = default;
 
   /**
-  * @brief Returns the visual filter stored at the given index
-  * @param index
-  * @return
+  * @brief Set the view widget used to render
+  * @param viewWidget
   */
-  VSAbstractFilter* getFilterFromIndex(QModelIndex index);
+  void setViewWidget(VSAbstractViewWidget* viewWidget);
 
   /**
-  * @brief Returns the model index of the given filter
-  * @param filter
-  * @return
-  */
-  QModelIndex getIndexFromFilter(VSAbstractFilter* filter);
-
-  /**
-  * @brief Returns a vector of top-level filters in the model
-  * @return
-  */
-  QVector<VSAbstractFilter*> getBaseFilters();
-
-  /**
-  * @brief Returns a vector of all visual filters in the model
-  */
-  QVector<VSAbstractFilter*> getAllFilters();
-
-signals:
-  void filterAdded(VSAbstractFilter* filter, bool currentFilter);
-  void filterRemoved(VSAbstractFilter* filter);
-
-public slots:
-  /**
-  * @brief Updates the model to reflect the view settings found in a given view controller
-  * @param viewSettings
-  */
-  void updateModelForView(VSFilterViewSettings::Map viewSettings);
-
-  /**
-  * @brief Adds a filter to the model
+  * @brief Sets the filter to translate
   * @param filter
   */
-  void addFilter(VSAbstractFilter* filter, bool currentFilter = true);
+  void setFilter(VSAbstractFilter* filter);
 
   /**
-  * @brief Removes a filter from the model
-  * @param filter
+  * @brief Enables the vtkWidget for rendering
   */
-  void removeFilter(VSAbstractFilter* filter);
+  void enable();
 
-private slots:
   /**
-  * @brief Deletes the target filter.  This slot should only be called through the signal emitted in removeFilter
-  * @param filter
+  * @brief Disables the vtkWidget for rendering
   */
-  void deleteFilter(VSAbstractFilter* filter);
+  void disable();
+
+protected:
+  /**
+  * @brief Returns true if the object should be rendered and false otherwise
+  */
+  bool shouldRender();
 
 private:
-  QSemaphore m_ModelLock;
-};
+  VTK_PTR(vtkAxesTransformWidget) m_TransformWidget;
+  VSAbstractViewWidget* m_ViewWidget;
+  VSAbstractFilter* m_Filter;
 
+  bool m_Enabled;
+};

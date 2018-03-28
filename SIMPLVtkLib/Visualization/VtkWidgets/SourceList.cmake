@@ -6,6 +6,7 @@ set(${PROJECT_NAME}_VtkWidget
 
 set(${PROJECT_NAME}_VtkWidget_NoUi
   VSAbstractWidget
+  VSMoveWidget
 )
 
 # --------------------------------------------------------------------
