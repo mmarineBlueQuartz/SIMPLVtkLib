@@ -47,7 +47,7 @@ VSMoveWidget::VSMoveWidget(QObject* parent, VSAbstractViewWidget* viewWidget)
   , m_Enabled(true)
 {
   m_TransformWidget = VTK_PTR(vtkAxesTransformWidget)::New();
-  m_TransformWidget->SetRepresentation(vtkAxesTransformRepresentation::New());
+  m_TransformWidget->CreateDefaultRepresentation();
 
   setViewWidget(viewWidget);
 }
@@ -64,8 +64,10 @@ void VSMoveWidget::setViewWidget(VSAbstractViewWidget* viewWidget)
 
   m_ViewWidget = viewWidget;
   
-  //m_TransformWidget->SetCurrentRenderer(viewWidget->getVisualizationWidget()->getRenderer());
+  vtkRenderer* renderer = viewWidget->getVisualizationWidget()->getRenderer();
+  m_TransformWidget->SetCurrentRenderer(renderer);
   m_TransformWidget->SetInteractor(viewWidget->getVisualizationWidget()->GetInteractor());
+  m_TransformWidget->GetLineRepresentation()->SetRenderer(renderer);
 
   if(shouldRender())
   {
@@ -78,10 +80,10 @@ void VSMoveWidget::setViewWidget(VSAbstractViewWidget* viewWidget)
 // -----------------------------------------------------------------------------
 void VSMoveWidget::setFilter(VSAbstractFilter* filter)
 {
-  if(shouldRender())
-  {
-    m_TransformWidget->EnabledOff();
-  }
+  //if(shouldRender())
+  //{
+  //  m_TransformWidget->EnabledOff();
+  //}
 
   bool disabled = (nullptr == m_Filter) && m_Enabled;
 
@@ -89,14 +91,14 @@ void VSMoveWidget::setFilter(VSAbstractFilter* filter)
 
   if(nullptr == filter)
   {
-    disable();
+    //disable();
     return;
   }
 
   // Set global position
   m_TransformWidget->GetLineRepresentation()->SetOriginWorldPosition(filter->getTransform()->getPosition());
 
-  if(disabled)
+  if(shouldRender())
   {
     enable();
   }
