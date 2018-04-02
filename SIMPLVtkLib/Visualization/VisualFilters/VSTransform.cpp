@@ -58,7 +58,7 @@ VSTransform::VSTransform(VSTransform* parent)
   });
   connect(this, &VSTransform::emitScale, this, [=] 
   {
-    emit updatedScale(getScale()); 
+    emit updatedScale(getScale());
     emit valuesChanged();
   });
   connect(this, &VSTransform::emitAll, this, [=]

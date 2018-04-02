@@ -44,9 +44,9 @@ VSMoveWidget::VSMoveWidget(QObject* parent, VSAbstractViewWidget* viewWidget)
   : QObject(parent)
   , m_Filter(nullptr)
   , m_ViewWidget(nullptr)
-  , m_Enabled(true)
+  , m_Enabled(false)
 {
-  m_TransformWidget = VTK_PTR(vtkAxesTransformWidget)::New();
+  m_TransformWidget = VTK_PTR(vtkAffineWidget)::New();
   m_TransformWidget->CreateDefaultRepresentation();
 
   setViewWidget(viewWidget);
@@ -67,7 +67,7 @@ void VSMoveWidget::setViewWidget(VSAbstractViewWidget* viewWidget)
   vtkRenderer* renderer = viewWidget->getVisualizationWidget()->getRenderer();
   m_TransformWidget->SetCurrentRenderer(renderer);
   m_TransformWidget->SetInteractor(viewWidget->getVisualizationWidget()->GetInteractor());
-  m_TransformWidget->GetLineRepresentation()->SetRenderer(renderer);
+  //m_TransformWidget->GetLineRepresentation()->SetRenderer(renderer);
 
   if(shouldRender())
   {
@@ -80,10 +80,10 @@ void VSMoveWidget::setViewWidget(VSAbstractViewWidget* viewWidget)
 // -----------------------------------------------------------------------------
 void VSMoveWidget::setFilter(VSAbstractFilter* filter)
 {
-  //if(shouldRender())
-  //{
-  //  m_TransformWidget->EnabledOff();
-  //}
+  if(shouldRender())
+  {
+    m_TransformWidget->EnabledOff();
+  }
 
   bool disabled = (nullptr == m_Filter) && m_Enabled;
 
@@ -96,7 +96,7 @@ void VSMoveWidget::setFilter(VSAbstractFilter* filter)
   }
 
   // Set global position
-  m_TransformWidget->GetLineRepresentation()->SetOriginWorldPosition(filter->getTransform()->getPosition());
+  //m_TransformWidget->GetLineRepresentation()->SetOriginWorldPosition(filter->getTransform()->getPosition());
 
   if(shouldRender())
   {
@@ -115,7 +115,7 @@ void VSMoveWidget::enable()
 
   if(!rendered)
   {
-    m_TransformWidget->EnabledOn();
+    m_TransformWidget->On();
   }
 }
 
@@ -130,7 +130,30 @@ void VSMoveWidget::disable()
 
   if(rendered)
   {
-    m_TransformWidget->EnabledOff();
+    m_TransformWidget->Off();
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSMoveWidget::isEnabled()
+{
+  return shouldRender();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSMoveWidget::setEnabled(bool enabled)
+{
+  if(enabled)
+  {
+    enable();
+  }
+  else
+  {
+    disable();
   }
 }
 

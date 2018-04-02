@@ -42,6 +42,7 @@
 #include <QtCore/QObject>
 
 #include <vtkAxesTransformWidget.h>
+#include <vtkAffineWidget.h>
 
 #include "SIMPLVtkLib/QtWidgets/VSAbstractViewWidget.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSTransform.h"
@@ -91,6 +92,18 @@ public:
   */
   void disable();
 
+  /**
+  * @brief Returns true if the widget is enabled.  Returns false otherwise.
+  * @return
+  */
+  bool isEnabled();
+
+  /**
+  * @brief Sets the enabled state based on the boolean value provided.
+  * @param enabled
+  */
+  void setEnabled(bool enabled);
+
 protected:
   /**
   * @brief Returns true if the object should be rendered and false otherwise
@@ -98,7 +111,8 @@ protected:
   bool shouldRender();
 
 private:
-  VTK_PTR(vtkAxesTransformWidget) m_TransformWidget;
+  //VTK_PTR(vtkAxesTransformWidget) m_TransformWidget;
+  VTK_PTR(vtkAffineWidget) m_TransformWidget;
   VSAbstractViewWidget* m_ViewWidget;
   VSAbstractFilter* m_Filter;
 

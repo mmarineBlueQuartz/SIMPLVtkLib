@@ -150,6 +150,12 @@ protected slots:
   */
   void importedFilterNum(int value);
 
+  /**
+  * @brief Handle checked state changes for the positionBtn
+  * @param toggled
+  */
+  void moveButtonToggled(bool toggled);
+
 private:
   class vsInternals;
   vsInternals* m_Internals;
@@ -161,5 +167,4 @@ private:
   QAction* m_ActionAddSlice = nullptr;
   QAction* m_ActionAddMask = nullptr;
   QAction* m_ActionAddThreshold = nullptr;
-  VSMoveWidget* m_MoveWidget = nullptr;
 };
