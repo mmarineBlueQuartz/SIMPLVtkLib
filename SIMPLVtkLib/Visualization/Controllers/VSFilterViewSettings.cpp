@@ -646,6 +646,11 @@ bool VSFilterViewSettings::isFlatImage()
     return false;
   }
 
+  if(m_Filter->getOutputType() != VSAbstractFilter::dataType_t::IMAGE_DATA)
+  {
+    return false;
+  }
+
   vtkImageData* imageData = dynamic_cast<vtkImageData*>(outputData.Get());
   if(nullptr == imageData)
   {
@@ -1012,7 +1017,7 @@ void VSFilterViewSettings::copySettings(VSFilterViewSettings* copy)
   }
 
   bool hasUi = copy->getScalarBarWidget();
-  if(hasUi)
+  if(hasUi && m_ScalarBarWidget)
   {
     vtkRenderWindowInteractor* iren = copy->m_ScalarBarWidget->GetInteractor();
     m_ScalarBarWidget->SetInteractor(iren);
@@ -1027,7 +1032,7 @@ void VSFilterViewSettings::copySettings(VSFilterViewSettings* copy)
   setSolidColor(copy->getSolidColor());
   setRepresentation(copy->getRepresentation());
 
-  if(hasUi)
+  if(hasUi && m_ScalarBarWidget)
   {
     m_LookupTable->copy(*(copy->m_LookupTable));
   }
