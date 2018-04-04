@@ -39,7 +39,6 @@
 #include <QtWidgets/QMenu>
 
 #include "SIMPLVtkLib/QtWidgets/VSMainWidgetBase.h"
-#include "SIMPLVtkLib/Visualization/VtkWidgets/VSMoveWidget.h"
 
 #include "SIMPLVtkLib/SIMPLVtkLib.h"
 
@@ -149,12 +148,6 @@ protected slots:
   * @param value
   */
   void importedFilterNum(int value);
-
-  /**
-  * @brief Handle checked state changes for the positionBtn
-  * @param toggled
-  */
-  void moveButtonToggled(bool toggled);
 
 private:
   class vsInternals;

@@ -44,7 +44,6 @@
 #include "SIMPLVtkLib/QtWidgets/VSFilterView.h"
 #include "SIMPLVtkLib/QtWidgets/VSInfoWidget.h"
 #include "SIMPLVtkLib/Visualization/Controllers/VSController.h"
-#include "SIMPLVtkLib/Visualization/VtkWidgets/VSMoveWidget.h"
 
 #include "SIMPLVtkLib/SIMPLVtkLib.h"
 
@@ -200,18 +199,6 @@ protected:
   */
   void finishAddingFilter(VSAbstractFilter* filter, VSAbstractFilter* parent);
 
-  /**
-  * @brief Sets the VSMoveWidget
-  * @param moveWidget
-  */
-  void setMoveWidget(VSMoveWidget* moveWidget);
-
-  /**
-  * @brief Returns the VSMoveWidget used
-  * @return
-  */
-  VSMoveWidget* getMoveWidget();
-
 protected slots:
   /**
   * @brief Notifies change in the active VSAbstractViewWidget
@@ -276,28 +263,12 @@ protected slots:
    */
   void generateError(const QString &title, const QString &msg, const int &code);
 
-  /**
-  * @brief Enables the VSMoveWidget
-  */
-  void enableMoveWidget();
-
-  /**
-  * @brief Disables the VSMoveWidget
-  */
-  void disableMoveWidget();
-
-  /**
-  * @brief Toggles the VSMoveWidget
-  */
-  void toggleMoveWidget();
-
 private:
   VSController* m_Controller;
   VSAbstractFilter* m_CurrentFilter = nullptr;
   VSAbstractViewWidget* m_ActiveViewWidget = nullptr;
   VSFilterView* m_FilterView = nullptr;
   VSInfoWidget* m_InfoWidget = nullptr;
-  VSMoveWidget* m_MoveWidget = nullptr;
 
   QMap<VSAbstractFilter*,VSAbstractFilterWidget*>  m_FilterToFilterWidgetMap;
 

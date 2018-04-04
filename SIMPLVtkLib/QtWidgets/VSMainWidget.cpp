@@ -69,10 +69,6 @@ VSMainWidget::VSMainWidget(QWidget* parent)
   connectViewWidget(viewWidget);
   setActiveView(viewWidget);
 
-  VSMoveWidget* moveWidget = new VSMoveWidget(this, viewWidget);
-  moveWidget->setViewWidget(m_Internals->viewWidget);
-  setMoveWidget(moveWidget);
-
   createFilterMenu();
   connectSlots();
   setCurrentFilter(nullptr);
@@ -98,7 +94,6 @@ void VSMainWidget::connectSlots()
   connect(m_Internals->cameraXmBtn, SIGNAL(clicked()), this, SLOT(activeCameraXMinus()));
   connect(m_Internals->cameraYmBtn, SIGNAL(clicked()), this, SLOT(activeCameraYMinus()));
   connect(m_Internals->cameraZmBtn, SIGNAL(clicked()), this, SLOT(activeCameraZMinus()));
-  connect(m_Internals->positionBtn, SIGNAL(toggled(bool)), this, SLOT(moveButtonToggled(bool)));
 
   connect(getController(), &VSController::filterAdded, this, [=] { renderAll(); });
   connect(getController(), &VSController::dataImported, this, [=] { resetCamera(); });
@@ -160,11 +155,6 @@ void VSMainWidget::setActiveView(VSAbstractViewWidget* viewWidget)
     m_Internals->cameraZmBtn->setDisabled(true);
     m_Internals->cameraZpBtn->setDisabled(true);
   }
-
-  if(getActiveViewWidget() && getMoveWidget())
-  {
-    getMoveWidget()->setViewWidget(getActiveViewWidget());
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -201,11 +191,6 @@ void VSMainWidget::setCurrentFilter(VSAbstractFilter* filter)
   // Text
   bool enableText = VSTextFilter::compatibleWithParent(filter);
   m_ActionAddText->setEnabled(enableText);
-
-  if(getMoveWidget())
-  {
-    getMoveWidget()->setFilter(filter);
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -358,16 +343,5 @@ void VSMainWidget::importedFilterNum(int value)
   else
   {
     m_Internals->progressBar->setValue(value);
-  }
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void VSMainWidget::moveButtonToggled(bool toggled)
-{
-  if(getMoveWidget())
-  {
-    getMoveWidget()->setEnabled(toggled);
   }
 }
