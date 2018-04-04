@@ -64,6 +64,16 @@ void VSInteractorStyleFilterCamera::OnLeftButtonDown()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::OnLeftButtonUp()
+{
+  vtkInteractorStyleTrackballCamera::OnLeftButtonUp();
+
+  releaseFilter();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
 void VSInteractorStyleFilterCamera::OnRightButtonDown()
 {
   vtkInteractorStyleTrackballCamera::OnRightButtonDown();
@@ -81,7 +91,7 @@ void VSInteractorStyleFilterCamera::OnMouseMove()
 
   if(m_GrabbedFilter && dragFilterKey())
   {
-    // TODO: Move filter
+    // Move the filter based on the changed mouse coordinates
     moveFilter();
   }
   else

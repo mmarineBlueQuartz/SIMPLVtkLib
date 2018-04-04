@@ -60,6 +60,11 @@ public:
   void OnLeftButtonDown() override;
 
   /**
+  * @brief Handles left mouse button releases
+  */
+  void OnLeftButtonUp() override;
+
+  /**
   * @brief Cancels any drag operations.
   */
   void OnRightButtonDown() override;
