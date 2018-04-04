@@ -127,7 +127,9 @@ protected:
 
 private:
   VSAbstractFilter* m_GrabbedFilter = nullptr;
+  vtkProp3D* m_GrabbedProp = nullptr;
   int m_MousePress = 0;
+  double* m_InitialPosition;
 
   VSAbstractViewWidget* m_ViewWidget = nullptr;
 };

@@ -82,6 +82,7 @@ void VSInteractorStyleFilterCamera::OnMouseMove()
   if(m_GrabbedFilter && dragFilterKey())
   {
     // TODO: Move filter
+    moveFilter();
   }
   else
   {
@@ -155,10 +156,15 @@ void VSInteractorStyleFilterCamera::grabFilter()
   VTK_NEW(vtkPropPicker, picker);
   picker->Pick(clickPos[0], clickPos[1], 0, renderer);
   double* pickPos = picker->GetPickPosition();
-  vtkProp3D* prop = picker->GetProp3D();
+  m_GrabbedProp = picker->GetProp3D();
 
-  m_GrabbedFilter = m_ViewWidget->getFilterFromProp(prop);
+  m_GrabbedFilter = m_ViewWidget->getFilterFromProp(m_GrabbedProp);
   m_ViewWidget->selectFilter(m_GrabbedFilter);
+
+  if(m_GrabbedFilter)
+  {
+    m_InitialPosition = m_GrabbedFilter->getTransform()->getLocalPosition();
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -167,6 +173,7 @@ void VSInteractorStyleFilterCamera::grabFilter()
 void VSInteractorStyleFilterCamera::releaseFilter()
 {
   m_GrabbedFilter = nullptr;
+  m_GrabbedProp = nullptr;
 }
 
 // -----------------------------------------------------------------------------
@@ -176,7 +183,13 @@ void VSInteractorStyleFilterCamera::cancelGrab()
 {
   // TODO: Cancel any drag operations and put the filter back where it was initially
 
+  if(m_GrabbedFilter)
+  {
+    m_GrabbedFilter->getTransform()->setLocalPosition(m_InitialPosition);
+  }
+
   m_GrabbedFilter = nullptr;
+  m_GrabbedProp = nullptr;
 }
 
 // -----------------------------------------------------------------------------
@@ -184,11 +197,45 @@ void VSInteractorStyleFilterCamera::cancelGrab()
 // -----------------------------------------------------------------------------
 void VSInteractorStyleFilterCamera::moveFilter()
 {
-  if(nullptr == m_GrabbedFilter)
+  if(nullptr == m_GrabbedFilter || nullptr == m_GrabbedProp)
   {
     return;
   }
 
-  // TODO: Move filter
-  int x = 0;
+  vtkRenderWindowInteractor* inter = this->Interactor;
+
+  // Move filter
+  double* obj_center = m_GrabbedProp->GetCenter();
+
+  double disp_obj_center[3], new_pick_point[4];
+  double old_pick_point[4], deltaPosition[3];
+
+  this->ComputeWorldToDisplay(obj_center[0], obj_center[1], obj_center[2],
+    disp_obj_center);
+
+  this->ComputeDisplayToWorld(inter->GetEventPosition()[0],
+    inter->GetEventPosition()[1],
+    disp_obj_center[2],
+    new_pick_point);
+
+  this->ComputeDisplayToWorld(inter->GetLastEventPosition()[0],
+    inter->GetLastEventPosition()[1],
+    disp_obj_center[2],
+    old_pick_point);
+
+  deltaPosition[0] = new_pick_point[0] - old_pick_point[0];
+  deltaPosition[1] = new_pick_point[1] - old_pick_point[1];
+  deltaPosition[2] = new_pick_point[2] - old_pick_point[2];
+
+  VSTransform* transform = m_GrabbedFilter->getTransform();
+  double* globalPosition = transform->getPosition();
+  double localDelta[3];
+  for(int i = 0; i < 3; i++)
+  {
+    localDelta[i] = deltaPosition[i] + globalPosition[i];
+  }
+  delete[] globalPosition;
+
+  transform->localizePoint(localDelta);
+  transform->translate(localDelta);
 }

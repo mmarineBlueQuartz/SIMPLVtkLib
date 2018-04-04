@@ -190,6 +190,16 @@ double* VSTransform::getLocalScale()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+void VSTransform::translate(double delta[3])
+{
+  m_LocalTransform->Translate(delta);
+  emit emitPosition();
+  emit updatedLocalPosition(m_LocalTransform->GetPosition());
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
 VTK_PTR(vtkTransform) VSTransform::getGlobalTransform()
 {
   VTK_NEW(vtkTransform, transform);
@@ -291,6 +301,7 @@ void VSTransform::setLocalPosition(double position[3])
   setLocalValues(position, rotation, scale);
 
   emit emitPosition();
+  emit updatedLocalPosition(m_LocalTransform->GetPosition());
 }
 
 // -----------------------------------------------------------------------------
@@ -307,6 +318,7 @@ void VSTransform::setLocalRotation(double rotation[3])
   setLocalValues(position, rotation, scale);
 
   emit emitRotation();
+  emit updatedLocalRotation(m_LocalTransform->GetOrientation());
 }
 
 // -----------------------------------------------------------------------------
@@ -323,6 +335,7 @@ void VSTransform::setLocalScale(double scale[3])
   setLocalValues(position, rotation, scale);
 
   emit emitScale();
+  emit updatedLocalScale(m_LocalTransform->GetScale());
 }
 
 // -----------------------------------------------------------------------------
