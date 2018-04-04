@@ -39,6 +39,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkRenderer.h>
+#include <vtkInteractorStyle.h>
 
 #include "SIMPLVtkLib/SIMPLVtkLib.h"
 #include "SIMPLVtkLib/SIMPLBridge/VtkMacros.h"
@@ -83,6 +84,12 @@ public:
   * @return
   */
   VTK_PTR(vtkRenderer) getRenderer();
+
+  /**
+  * @brief Sets the renderer's vtkInteractorStyle
+  * @param style
+  */
+  void setInteractorStyle(vtkInteractorStyle* style);
 
 signals:
   void mousePressed();

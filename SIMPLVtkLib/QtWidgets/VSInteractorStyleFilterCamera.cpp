@@ -1,5 +1,5 @@
 /* ============================================================================
-* Copyright (c) 2009-2017 BlueQuartz Software, LLC
+* Copyright (c) 2009-2015 BlueQuartz Software, LLC
 *
 * Redistribution and use in source and binary forms, with or without modification,
 * are permitted provided that the following conditions are met:
@@ -33,137 +33,162 @@
 *
 * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "VSViewWidget.h"
+#include "VSInteractorStyleFilterCamera.h"
 
-#include <QtGui/QPainter>
+#include <string>
 
-#include "ui_VSViewWidget.h"
+#include <vtkPropPicker.h>
+#include <vtkRenderWindowInteractor.h>
+
+#include "SIMPLVtkLib/QtWidgets/VSAbstractViewWidget.h"
+#include "SIMPLVtkLib/SIMPLBridge/VtkMacros.h"
+
+vtkStandardNewMacro(VSInteractorStyleFilterCamera);
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-class VSViewWidget::VSInternals : public Ui::VSViewWidget
+void VSInteractorStyleFilterCamera::OnLeftButtonDown()
 {
-public:
-  VSInternals()
+  m_MousePress++;
+  if(m_MousePress == 2 && dragFilterKey())
   {
+    grabFilter();
   }
-};
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-VSViewWidget::VSViewWidget(QWidget* parent, Qt::WindowFlags windowFlags)
-  : VSAbstractViewWidget(parent, windowFlags)
-  , m_Internals(new VSInternals())
-  , m_InteractorStyle(VSInteractorStyleFilterCamera::New())
-{
-  m_Internals->setupUi(this);
-  m_Internals->visualizationWidget->setInteractorStyle(m_InteractorStyle);
-  m_InteractorStyle->setViewWidget(this);
-
-  connectSlots();
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-VSViewWidget::VSViewWidget(const VSViewWidget& other)
-  : VSAbstractViewWidget(nullptr)
-  , m_Internals(new VSInternals())
-{
-  m_Internals->setupUi(this);
-
-  setController(other.getController());
-  getVisualizationWidget()->copy(other.getVisualizationWidget());
-  copyFilters(other.getAllFilterViewSettings());
-
-  connectSlots();
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void VSViewWidget::connectSlots()
-{
-  connect(m_Internals->splitHorizontalBtn, SIGNAL(clicked()), this, SLOT(splitHorizontally()));
-  connect(m_Internals->splitVerticalBtn, SIGNAL(clicked()), this, SLOT(splitVertically()));
-  connect(m_Internals->closeBtn, SIGNAL(clicked()), this, SLOT(closeView()));
-
-  // Clicking any button should set the active VSViewController
-  connect(m_Internals->splitHorizontalBtn, SIGNAL(clicked()), this, SLOT(mousePressed()));
-  connect(m_Internals->splitVerticalBtn, SIGNAL(clicked()), this, SLOT(mousePressed()));
-  connect(getVisualizationWidget(), SIGNAL(mousePressed()), this, SLOT(mousePressed()));
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-VSAbstractViewWidget* VSViewWidget::clone()
-{
-  VSViewWidget* viewWidget = new VSViewWidget(*(this));
-  return viewWidget;
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-VSVisualizationWidget* VSViewWidget::getVisualizationWidget() const
-{
-  if(nullptr == m_Internals)
+  else
   {
-    return nullptr;
+    vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
   }
-
-  return m_Internals->visualizationWidget;
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSViewWidget::setActive(bool active)
+void VSInteractorStyleFilterCamera::OnRightButtonDown()
 {
-  (active) ? toActiveState() : toInactiveState();
+  vtkInteractorStyleTrackballCamera::OnRightButtonDown();
+
+  // Cancel any drag operations and release the filter
+  cancelGrab();
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSViewWidget::toActiveState()
+void VSInteractorStyleFilterCamera::OnMouseMove()
 {
-  QString styleString;
-  QTextStream ss(&styleString);
+  m_MousePress = 0;
 
-  ss << "VSViewWidget {";
-
-  ss << "border: 1px solid #0500ff;";
-  ss << "padding: 1px;";
-
-  ss << "}";
-
-  setStyleSheet(styleString);
+  if(m_GrabbedFilter && dragFilterKey())
+  {
+    // TODO: Move filter
+  }
+  else
+  {
+    vtkInteractorStyleTrackballCamera::OnMouseMove();
+  }
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSViewWidget::toInactiveState()
+void VSInteractorStyleFilterCamera::OnKeyUp()
 {
-  setStyleSheet("");
+  if(!dragFilterKey())
+  {
+    m_MousePress = 0;
+    releaseFilter();
+  }
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSViewWidget::setFilterShowScalarBar(VSFilterViewSettings* viewSettings, bool showScalarBar)
+void VSInteractorStyleFilterCamera::setViewWidget(VSAbstractViewWidget* viewWidget)
 {
-  if(false == (viewSettings && viewSettings->getScalarBarWidget()))
+  // End any interactions with the selected filter before changing the VSAbstractViewWidget
+  releaseFilter();
+
+  m_ViewWidget = viewWidget;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSInteractorStyleFilterCamera::ctrlKey()
+{
+  return this->Interactor->GetControlKey();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSInteractorStyleFilterCamera::altKey()
+{
+  return this->Interactor->GetAltKey();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSInteractorStyleFilterCamera::shiftKey()
+{
+  return this->Interactor->GetShiftKey();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSInteractorStyleFilterCamera::dragFilterKey()
+{
+  return shiftKey();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::grabFilter()
+{
+  int* clickPos = this->GetInteractor()->GetEventPosition();
+  vtkRenderer* renderer = this->GetDefaultRenderer();
+
+  VTK_NEW(vtkPropPicker, picker);
+  picker->Pick(clickPos[0], clickPos[1], 0, renderer);
+  double* pickPos = picker->GetPickPosition();
+  vtkProp3D* prop = picker->GetProp3D();
+
+  m_GrabbedFilter = m_ViewWidget->getFilterFromProp(prop);
+  m_ViewWidget->selectFilter(m_GrabbedFilter);
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::releaseFilter()
+{
+  m_GrabbedFilter = nullptr;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::cancelGrab()
+{
+  // TODO: Cancel any drag operations and put the filter back where it was initially
+
+  m_GrabbedFilter = nullptr;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::moveFilter()
+{
+  if(nullptr == m_GrabbedFilter)
   {
     return;
   }
 
-  VTK_PTR(vtkScalarBarWidget) scalarBarWidget = viewSettings->getScalarBarWidget();
-  scalarBarWidget->SetEnabled(showScalarBar);
-
-  renderView();
+  // TODO: Move filter
+  int x = 0;
 }

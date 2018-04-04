@@ -37,6 +37,7 @@
 
 #include "SIMPLVtkLib/SIMPLVtkLib.h"
 #include "SIMPLVtkLib/QtWidgets/VSAbstractViewWidget.h"
+#include "SIMPLVtkLib/QtWidgets/VSInteractorStyleFilterCamera.h"
 
 /**
 * @class VSViewWidget VSViewWidget.h SIMPLVtkLib/QtWidgets/VSViewWidget.h
@@ -100,6 +101,7 @@ protected slots:
 private:
   class VSInternals;
   VSInternals* m_Internals;
+  VSInteractorStyleFilterCamera* m_InteractorStyle;
 
   /**
    * @brief toActiveState
