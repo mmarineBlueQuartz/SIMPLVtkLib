@@ -75,9 +75,9 @@ public:
   void OnMouseMove() override;
 
   /**
-  * @brief Checks if the grabbed filter should be released
+  * @brief Checks if the ActionType needs to be set
   */
-  void OnKeyUp() override;
+  void OnKeyDown() override;
 
   /**
   * @brief Sets the VSAbstractViewWidget for selecting filters from
@@ -86,6 +86,19 @@ public:
   void setViewWidget(VSAbstractViewWidget* viewWidget);
 
 protected:
+  enum class ActionType
+  {
+    None = 0,
+    Translate,
+    Rotate,
+    Scale
+  };
+
+  ActionType getActionType();
+  void setActionType(ActionType type);
+  void endAction();
+  void cancelAction();
+
   /**
   * @brief Finds the filter at the current mouse cordinates and grabs it.
   */
@@ -97,14 +110,27 @@ protected:
   void releaseFilter();
 
   /**
-  * @brief Cancels any dragging of the selected filter
-  */
-  void cancelGrab();
-
-  /**
   * @brief Moves the selected filter
   */
-  void moveFilter();
+  void translateFilter();
+
+  /**
+  * @brief Begins a drag movement
+  */
+  void beginTranslation();
+
+  /**
+  * @brief Cancels a drag movement
+  */
+  void cancelTranslation();
+
+  void rotateFilter();
+  void beginRotation();
+  void cancelRotation();
+
+  void scaleFilter();
+  void beginScaling();
+  void cancelScaling();
 
   /**
   * @brief Returns true if the CTRL key is down.  Returns false otherwise.
@@ -134,7 +160,15 @@ private:
   VSAbstractFilter* m_GrabbedFilter = nullptr;
   vtkProp3D* m_GrabbedProp = nullptr;
   int m_MousePress = 0;
+  ActionType m_ActionType = ActionType::None;
+  // Position
   double* m_InitialPosition;
+  // Scaling
+  double* m_InitialScale;
+  double* m_InitialCenter;
+  double m_InitialDistance;
+  double m_ScaleAmt = 1.0;
+  
 
   VSAbstractViewWidget* m_ViewWidget = nullptr;
 };

@@ -51,7 +51,7 @@ vtkStandardNewMacro(VSInteractorStyleFilterCamera);
 void VSInteractorStyleFilterCamera::OnLeftButtonDown()
 {
   m_MousePress++;
-  if(m_MousePress == 2 && dragFilterKey())
+  if(m_MousePress >= 2)
   {
     grabFilter();
   }
@@ -79,7 +79,7 @@ void VSInteractorStyleFilterCamera::OnRightButtonDown()
   vtkInteractorStyleTrackballCamera::OnRightButtonDown();
 
   // Cancel any drag operations and release the filter
-  cancelGrab();
+  cancelAction();
 }
 
 // -----------------------------------------------------------------------------
@@ -89,10 +89,20 @@ void VSInteractorStyleFilterCamera::OnMouseMove()
 {
   m_MousePress = 0;
 
-  if(m_GrabbedFilter && dragFilterKey())
+  if(m_GrabbedFilter && ActionType::None != m_ActionType)
   {
-    // Move the filter based on the changed mouse coordinates
-    moveFilter();
+    switch(m_ActionType)
+    {
+    case ActionType::Translate:
+      translateFilter();
+      break;
+    case ActionType::Rotate:
+      rotateFilter();
+      break;
+    case ActionType::Scale:
+      scaleFilter();
+      break;
+    }
   }
   else
   {
@@ -103,12 +113,24 @@ void VSInteractorStyleFilterCamera::OnMouseMove()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSInteractorStyleFilterCamera::OnKeyUp()
+void VSInteractorStyleFilterCamera::OnKeyDown()
 {
-  if(!dragFilterKey())
+  std::string keyDown = this->Interactor->GetKeySym();
+  if(keyDown == "t")
   {
-    m_MousePress = 0;
-    releaseFilter();
+    setActionType(ActionType::Translate);
+  }
+  else if(keyDown == "r")
+  {
+    setActionType(ActionType::Rotate);
+  }
+  else if(keyDown == "s")
+  {
+    setActionType(ActionType::Scale);
+  }
+  else if(keyDown == "Escape")
+  {
+    cancelAction();
   }
 }
 
@@ -170,11 +192,69 @@ void VSInteractorStyleFilterCamera::grabFilter()
 
   m_GrabbedFilter = m_ViewWidget->getFilterFromProp(m_GrabbedProp);
   m_ViewWidget->selectFilter(m_GrabbedFilter);
+}
 
-  if(m_GrabbedFilter)
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+VSInteractorStyleFilterCamera::ActionType VSInteractorStyleFilterCamera::getActionType()
+{
+  return m_ActionType;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::setActionType(ActionType type)
+{
+  if(ActionType::None != m_ActionType)
   {
-    m_InitialPosition = m_GrabbedFilter->getTransform()->getLocalPosition();
+    endAction();
   }
+
+  m_ActionType = type;
+
+  switch(type)
+  {
+  case ActionType::Translate:
+    beginTranslation();
+    break;
+  case ActionType::Rotate:
+    beginRotation();
+    break;
+  case ActionType::Scale:
+    beginScaling();
+    break;
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::endAction()
+{
+  m_ActionType = ActionType::None;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::cancelAction()
+{
+  switch(m_ActionType)
+  {
+  case ActionType::Translate:
+    cancelTranslation();
+    break;
+  case ActionType::Rotate:
+    cancelRotation();
+    break;
+  case ActionType::Scale:
+    cancelScaling();
+    break;
+  }
+
+  m_ActionType = ActionType::None;
 }
 
 // -----------------------------------------------------------------------------
@@ -182,21 +262,7 @@ void VSInteractorStyleFilterCamera::grabFilter()
 // -----------------------------------------------------------------------------
 void VSInteractorStyleFilterCamera::releaseFilter()
 {
-  m_GrabbedFilter = nullptr;
-  m_GrabbedProp = nullptr;
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void VSInteractorStyleFilterCamera::cancelGrab()
-{
-  // TODO: Cancel any drag operations and put the filter back where it was initially
-
-  if(m_GrabbedFilter)
-  {
-    m_GrabbedFilter->getTransform()->setLocalPosition(m_InitialPosition);
-  }
+  endAction();
 
   m_GrabbedFilter = nullptr;
   m_GrabbedProp = nullptr;
@@ -205,14 +271,14 @@ void VSInteractorStyleFilterCamera::cancelGrab()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSInteractorStyleFilterCamera::moveFilter()
+void VSInteractorStyleFilterCamera::translateFilter()
 {
   if(nullptr == m_GrabbedFilter || nullptr == m_GrabbedProp)
   {
     return;
   }
 
-  vtkRenderWindowInteractor* inter = this->Interactor;
+  vtkRenderWindowInteractor* iren = this->Interactor;
 
   // Move filter
   double* obj_center = m_GrabbedProp->GetCenter();
@@ -223,13 +289,13 @@ void VSInteractorStyleFilterCamera::moveFilter()
   this->ComputeWorldToDisplay(obj_center[0], obj_center[1], obj_center[2],
     disp_obj_center);
 
-  this->ComputeDisplayToWorld(inter->GetEventPosition()[0],
-    inter->GetEventPosition()[1],
+  this->ComputeDisplayToWorld(iren->GetEventPosition()[0],
+    iren->GetEventPosition()[1],
     disp_obj_center[2],
     new_pick_point);
 
-  this->ComputeDisplayToWorld(inter->GetLastEventPosition()[0],
-    inter->GetLastEventPosition()[1],
+  this->ComputeDisplayToWorld(iren->GetLastEventPosition()[0],
+    iren->GetLastEventPosition()[1],
     disp_obj_center[2],
     old_pick_point);
 
@@ -248,4 +314,137 @@ void VSInteractorStyleFilterCamera::moveFilter()
 
   transform->localizePoint(localDelta);
   transform->translate(localDelta);
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::beginTranslation()
+{
+  if(m_GrabbedFilter)
+  {
+    m_InitialPosition = m_GrabbedFilter->getTransform()->getLocalPosition();
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::cancelTranslation()
+{
+  if(m_GrabbedFilter)
+  {
+    m_GrabbedFilter->getTransform()->setLocalPosition(m_InitialPosition);
+  }
+
+  m_ActionType = ActionType::None;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::rotateFilter()
+{}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::beginRotation()
+{}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::cancelRotation()
+{}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::scaleFilter()
+{
+  if(nullptr == m_GrabbedFilter || nullptr == m_GrabbedProp)
+  {
+    return;
+  }
+
+  vtkRenderWindowInteractor* iren = this->Interactor;
+  double disp_obj_center[3];
+
+  this->ComputeWorldToDisplay(m_InitialCenter[0], m_InitialCenter[1], m_InitialCenter[2],
+    disp_obj_center);
+
+  int* currentMousePos = iren->GetEventPosition();
+  double currentDelta[2];
+  for(int i = 0; i < 2; i++)
+  {
+    currentDelta[i] = currentMousePos[i] - disp_obj_center[i];
+  }
+  double currentDistance = sqrt((currentDelta[0] * currentDelta[0]) + (currentDelta[1] * currentDelta[1]));
+
+  double percentChanged = currentDistance / m_InitialDistance;
+  //double scaleFactor = pow(1.1, percentChanged);
+  m_ScaleAmt = percentChanged - 1.0;
+
+  double* newScale = new double[3];
+  for(int i = 0; i < 3; i++)
+  {
+    newScale[i] = m_InitialScale[i] + m_InitialScale[i] * m_ScaleAmt;
+    if(newScale[i] < 0.0)
+    {
+      newScale[i] = 0.0;
+    }
+  }
+  m_GrabbedFilter->getTransform()->setLocalScale(newScale);
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::beginScaling()
+{
+  if(nullptr == m_GrabbedFilter || nullptr == m_GrabbedProp)
+  {
+    return;
+  }
+
+  if(m_GrabbedFilter)
+  {
+    vtkRenderWindowInteractor* iren = this->Interactor;
+    double* obj_center = m_GrabbedFilter->getTransform()->getPosition();
+    double disp_obj_center[3];
+
+    this->ComputeWorldToDisplay(obj_center[0], obj_center[1], obj_center[2],
+      disp_obj_center);
+
+    int* currentMousePos = iren->GetEventPosition();
+    double currentDelta[2];
+    for(int i = 0; i < 2; i++)
+    {
+      currentDelta[i] = currentMousePos[i] - disp_obj_center[i];
+    }
+
+    int* initialMousePos = this->Interactor->GetEventPosition();
+    m_InitialCenter = m_GrabbedFilter->getTransform()->getPosition();
+    m_InitialDistance = sqrt((currentDelta[0] * currentDelta[0]) + (currentDelta[1] * currentDelta[1]));
+    m_InitialScale = m_GrabbedFilter->getTransform()->getLocalScale();
+    m_ScaleAmt = 1.0;
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::cancelScaling()
+{
+  if(m_GrabbedFilter)
+  {
+    double* localScale = m_GrabbedFilter->getTransform()->getLocalScale();
+    for(int i = 0; i < 3; i++)
+    {
+      localScale[i] -= m_ScaleAmt;
+    }
+    m_GrabbedFilter->getTransform()->setLocalScale(localScale);
+    //delete[] localScale;
+  }
 }
