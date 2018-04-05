@@ -37,6 +37,7 @@
 
 #include <string>
 
+#include <vtkCamera.h>
 #include <vtkPropPicker.h>
 #include <vtkRenderWindowInteractor.h>
 
@@ -344,19 +345,56 @@ void VSInteractorStyleFilterCamera::cancelTranslation()
 //
 // -----------------------------------------------------------------------------
 void VSInteractorStyleFilterCamera::rotateFilter()
-{}
+{
+  if(nullptr == m_GrabbedFilter || nullptr == m_GrabbedProp)
+  {
+    return;
+  }
+
+  vtkRenderWindowInteractor* iren = this->Interactor;
+  
+  int* currentMousePos = iren->GetEventPosition();
+  int* prevMousePos = iren->GetLastEventPosition();
+  double currentDelta[2];
+  for(int i = 0; i < 2; i++)
+  {
+    currentDelta[i] = currentMousePos[i] - prevMousePos[i];
+  }
+
+  const double ROTATION_SPEED = 8.0;
+  double rotateAmt = (currentDelta[0] + currentDelta[1]) / ROTATION_SPEED;
+  m_GrabbedFilter->getTransform()->rotate(rotateAmt, m_CameraAxis);
+}
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
 void VSInteractorStyleFilterCamera::beginRotation()
-{}
+{
+  if(nullptr == m_GrabbedFilter || nullptr == m_GrabbedProp)
+  {
+    return;
+  }
+
+  if(m_GrabbedFilter)
+  {
+    vtkRenderWindowInteractor* iren = this->Interactor;
+    m_InitialMousePos = iren->GetEventPosition();
+    m_InitialRotation = m_GrabbedFilter->getTransform()->getLocalRotation();
+    m_CameraAxis = GetDefaultRenderer()->GetActiveCamera()->GetDirectionOfProjection();
+  }
+}
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
 void VSInteractorStyleFilterCamera::cancelRotation()
-{}
+{
+  if(m_GrabbedFilter)
+  {
+    m_GrabbedFilter->getTransform()->setLocalRotation(m_InitialRotation);
+  }
+}
 
 // -----------------------------------------------------------------------------
 //
@@ -383,10 +421,9 @@ void VSInteractorStyleFilterCamera::scaleFilter()
   double currentDistance = sqrt((currentDelta[0] * currentDelta[0]) + (currentDelta[1] * currentDelta[1]));
 
   double percentChanged = currentDistance / m_InitialDistance;
-  //double scaleFactor = pow(1.1, percentChanged);
   m_ScaleAmt = percentChanged - 1.0;
 
-  double* newScale = new double[3];
+  double newScale[3];
   for(int i = 0; i < 3; i++)
   {
     newScale[i] = m_InitialScale[i] + m_InitialScale[i] * m_ScaleAmt;

@@ -139,6 +139,8 @@ public:
   */
   void translate(double delta[3]);
 
+  void rotate(double amount, double axis[3]);
+
   /**
   * @brief Returns the vtkTransform describing the global position, rotation, and scale.
   * @return

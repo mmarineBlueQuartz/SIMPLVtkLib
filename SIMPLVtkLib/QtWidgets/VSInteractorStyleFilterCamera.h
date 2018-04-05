@@ -202,6 +202,10 @@ private:
   ActionType m_ActionType = ActionType::None;
   // Position
   double* m_InitialPosition;
+  // Rotation
+  double* m_InitialRotation;
+  int* m_InitialMousePos;
+  double* m_CameraAxis;
   // Scaling
   double* m_InitialScale;
   double* m_InitialCenter;

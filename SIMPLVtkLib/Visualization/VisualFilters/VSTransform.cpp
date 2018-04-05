@@ -200,6 +200,16 @@ void VSTransform::translate(double delta[3])
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+void VSTransform::rotate(double amount, double axis[3])
+{
+  m_LocalTransform->RotateWXYZ(amount, axis);
+  emit emitRotation();
+  emit updatedLocalRotation(m_LocalTransform->GetOrientation());
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
 VTK_PTR(vtkTransform) VSTransform::getGlobalTransform()
 {
   VTK_NEW(vtkTransform, transform);
