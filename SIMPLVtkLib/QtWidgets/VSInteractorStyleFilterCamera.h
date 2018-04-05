@@ -94,9 +94,26 @@ protected:
     Scale
   };
 
+  /**
+  * @brief Returns the ActionType for the interactor style
+  * @return
+  */
   ActionType getActionType();
+
+  /**
+  * @brief Sets the ActionType for the interactor style
+  * @param type
+  */
   void setActionType(ActionType type);
+
+  /**
+  * @brief Ends the current action
+  */
   void endAction();
+
+  /**
+  * @brief Cancels the current action and resets the filter to the way it was when the action began
+  */
   void cancelAction();
 
   /**
@@ -124,12 +141,34 @@ protected:
   */
   void cancelTranslation();
 
+  /**
+  * @brief Rotates the selected filter based on the camera angle
+  */
   void rotateFilter();
+
+  /**
+  * @brief Sets the initial rotation values
+  */
   void beginRotation();
+
+  /**
+  * @brief Cancels the filter rotation
+  */
   void cancelRotation();
 
+  /**
+  * @brief Scales the selected filter based on mouse movements
+  */
   void scaleFilter();
+
+  /**
+  * @brief Sets the initial rotation values
+  */
   void beginScaling();
+
+  /**
+  * @brief Resets the selected filter's scaling to the initial value.
+  */
   void cancelScaling();
 
   /**
