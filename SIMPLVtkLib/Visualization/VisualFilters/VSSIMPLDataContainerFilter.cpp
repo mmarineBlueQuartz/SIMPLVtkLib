@@ -139,34 +139,34 @@ VSSIMPLDataContainerFilter* VSSIMPLDataContainerFilter::Create(const QString& fi
   {
     int err = 0;
     DataContainerArrayProxy proxy = reader.readDataContainerArrayStructure(nullptr, err);
-    for(QMap<QString, DataContainerProxy>::iterator dcIter = proxy.dataContainers.begin(); dcIter != proxy.dataContainers.end(); dcIter++)
+    for(QMap<QString, DataContainerProxy>::iterator dcIter = proxy.getDataContainers().begin(); dcIter != proxy.getDataContainers().end(); dcIter++)
     {
       if(dcIter.key() == dcName)
       {
         DataContainerProxy dcProxy = dcIter.value();
-        dcProxy.flag = Qt::Checked;
+        dcProxy.setFlag(Qt::Checked);
 
-        for(QMap<QString, AttributeMatrixProxy>::iterator amIter = dcProxy.attributeMatricies.begin(); amIter != dcProxy.attributeMatricies.end(); amIter++)
+        for(QMap<QString, AttributeMatrixProxy>::iterator amIter = dcProxy.getAttributeMatricies().begin(); amIter != dcProxy.getAttributeMatricies().end(); amIter++)
         {
           AttributeMatrixProxy amProxy = amIter.value();
 
-          if(amProxy.amType == AttributeMatrix::Type::Cell)
+          if(amProxy.getAMType() == AttributeMatrix::Type::Cell)
           {
-            amProxy.flag = Qt::Checked;
+            amProxy.setFlag(Qt::Checked);
           }
 
-          for(QMap<QString, DataArrayProxy>::iterator daIter = amProxy.dataArrays.begin(); daIter != amProxy.dataArrays.end(); daIter++)
+          for(QMap<QString, DataArrayProxy>::iterator daIter = amProxy.getDataArrays().begin(); daIter != amProxy.getDataArrays().end(); daIter++)
           {
             DataArrayProxy daProxy = daIter.value();
-            daProxy.flag = Qt::Checked;
+            daProxy.setFlag(Qt::Checked);
 
-            amProxy.dataArrays[daProxy.name] = daProxy;
+            amProxy.getDataArrays()[daProxy.getName()] = daProxy;
           }
 
-          dcProxy.attributeMatricies[amProxy.name] = amProxy;
+          dcProxy.getAttributeMatricies()[amProxy.getName()] = amProxy;
         }
 
-        proxy.dataContainers[dcProxy.name] = dcProxy;
+        proxy.getDataContainers()[dcProxy.getName()] = dcProxy;
 
         DataContainerArray::Pointer dca = reader.readSIMPLDataUsingProxy(proxy, false);
         DataContainerShPtr dc = dca->getDataContainer(dcName);
@@ -260,21 +260,21 @@ void VSSIMPLDataContainerFilter::reloadData()
     {
       int err = 0;
       DataContainerArrayProxy dcaProxy = reader->readDataContainerArrayStructure(nullptr, err);
-      QStringList dcNames = dcaProxy.dataContainers.keys();
+      QStringList dcNames = dcaProxy.getDataContainers().keys();
       if(dcNames.contains(dcName))
       {
-        DataContainerProxy dcProxy = dcaProxy.dataContainers.value(dcName);
-        if(dcProxy.dcType != static_cast<unsigned int>(IGeometry::Type::Unknown))
+        DataContainerProxy dcProxy = dcaProxy.getDataContainers().value(dcName);
+        if(dcProxy.getDCType() != static_cast<unsigned int>(IGeometry::Type::Unknown))
         {
           QString dcName = m_DCValues->getWrappedDataContainer()->m_Name;
-          DataContainerProxy dcProxy = dcaProxy.dataContainers.value(dcName);
+          DataContainerProxy dcProxy = dcaProxy.getDataContainers().value(dcName);
 
           AttributeMatrixProxy::AMTypeFlags amFlags(AttributeMatrixProxy::AMTypeFlag::Cell_AMType);
           DataArrayProxy::PrimitiveTypeFlags pFlags(DataArrayProxy::PrimitiveTypeFlag::Any_PType);
           DataArrayProxy::CompDimsVector compDimsVector;
 
           dcProxy.setFlags(Qt::Checked, amFlags, pFlags, compDimsVector);
-          dcaProxy.dataContainers[dcProxy.name] = dcProxy;
+          dcaProxy.getDataContainers()[dcProxy.getName()] = dcProxy;
 
           DataContainerArray::Pointer dca = reader->readSIMPLDataUsingProxy(dcaProxy, false);
           DataContainer::Pointer dc = dca->getDataContainer(m_DCValues->getWrappedDataContainer()->m_Name);

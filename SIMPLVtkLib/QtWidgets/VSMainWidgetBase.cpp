@@ -514,41 +514,41 @@ void VSMainWidgetBase::openDREAM3DFile(const QString& filePath)
     int err = 0;
     SIMPLH5DataReaderRequirements req(SIMPL::Defaults::AnyPrimitive, SIMPL::Defaults::AnyComponentSize, AttributeMatrix::Type::Any, IGeometry::Type::Any);
     DataContainerArrayProxy proxy = reader.readDataContainerArrayStructure(&req, err);
-    if(proxy.dataContainers.isEmpty())
+    if(proxy.getDataContainers().isEmpty())
     {
       return;
     }
 
-    QStringList dcNames = proxy.dataContainers.keys();
+    QStringList dcNames = proxy.getDataContainers().keys();
     for(int i = 0; i < dcNames.size(); i++)
     {
       QString dcName = dcNames[i];
-      DataContainerProxy dcProxy = proxy.dataContainers[dcName];
+      DataContainerProxy dcProxy = proxy.getDataContainers()[dcName];
 
       // We want only data containers with geometries displayed
-      if(dcProxy.dcType == static_cast<unsigned int>(DataContainer::Type::Unknown))
+      if(dcProxy.getDCType() == static_cast<unsigned int>(DataContainer::Type::Unknown))
       {
-        proxy.dataContainers.remove(dcName);
+        proxy.getDataContainers().remove(dcName);
       }
       else
       {
-        QStringList amNames = dcProxy.attributeMatricies.keys();
+        QStringList amNames = dcProxy.getAttributeMatricies().keys();
         for(int j = 0; j < amNames.size(); j++)
         {
           QString amName = amNames[j];
-          AttributeMatrixProxy amProxy = dcProxy.attributeMatricies[amName];
+          AttributeMatrixProxy amProxy = dcProxy.getAttributeMatricies()[amName];
 
           // We want only cell attribute matrices displayed
-          if(amProxy.amType != AttributeMatrix::Type::Cell)
+          if(amProxy.getAMType() != AttributeMatrix::Type::Cell)
           {
-            dcProxy.attributeMatricies.remove(amName);
-            proxy.dataContainers[dcName] = dcProxy;
+            dcProxy.getAttributeMatricies().remove(amName);
+            proxy.getDataContainers()[dcName] = dcProxy;
           }
         }
       }
     }
 
-    if(proxy.dataContainers.size() <= 0)
+    if(proxy.getDataContainers().size() <= 0)
     {
       QMessageBox::critical(this, "Invalid Data",
                             tr("IMF Viewer failed to open file '%1' because the file does not "
@@ -901,14 +901,14 @@ void VSMainWidgetBase::reloadFilters(std::vector<VSAbstractDataFilter*> filters)
       {
         VSSIMPLDataContainerFilter* validFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(filters[i]);
 
-        DataContainerProxy dcProxy = dcaProxy.dataContainers.value(validFilter->getFilterName());
+        DataContainerProxy dcProxy = dcaProxy.getDataContainers().value(validFilter->getFilterName());
 
         AttributeMatrixProxy::AMTypeFlags amFlags(AttributeMatrixProxy::AMTypeFlag::Cell_AMType);
         DataArrayProxy::PrimitiveTypeFlags pFlags(DataArrayProxy::PrimitiveTypeFlag::Any_PType);
         DataArrayProxy::CompDimsVector compDimsVector;
 
         dcProxy.setFlags(Qt::Checked, amFlags, pFlags, compDimsVector);
-        dcaProxy.dataContainers[dcProxy.name] = dcProxy;
+        dcaProxy.getDataContainers()[dcProxy.getName()] = dcProxy;
       }
 
       DataContainerArray::Pointer dca = reader->readSIMPLDataUsingProxy(dcaProxy, false);

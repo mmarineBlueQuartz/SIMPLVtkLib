@@ -309,8 +309,8 @@ bool DREAM3DFileTreeModel::setData(const QModelIndex& index, const QVariant& val
       indexesChanged.push_back(index);
 
       QString dcName = data(index, Qt::DisplayRole).toString();
-      DataContainerProxy dcProxy = m_Proxy.dataContainers.value(dcName);
-      dcProxy.flag = value.toBool();
+      DataContainerProxy dcProxy = m_Proxy.getDataContainers().value(dcName);
+      dcProxy.setFlag(value.toBool());
 
       for(int i = 0; i < rowCount(index); i++)
       {
@@ -319,8 +319,8 @@ bool DREAM3DFileTreeModel::setData(const QModelIndex& index, const QVariant& val
         indexesChanged.push_back(amIndex);
 
         QString amName = data(amIndex, Qt::DisplayRole).toString();
-        AttributeMatrixProxy amProxy = dcProxy.attributeMatricies.value(amName);
-        amProxy.flag = value.toBool();
+        AttributeMatrixProxy amProxy = dcProxy.getAttributeMatricies().value(amName);
+        amProxy.setFlag(value.toBool());
 
         for(int i = 0; i < rowCount(amIndex); i++)
         {
@@ -329,15 +329,15 @@ bool DREAM3DFileTreeModel::setData(const QModelIndex& index, const QVariant& val
           indexesChanged.push_back(daIndex);
 
           QString daName = data(daIndex, Qt::DisplayRole).toString();
-          DataArrayProxy daProxy = amProxy.dataArrays.value(daName);
-          daProxy.flag = value.toBool();
-          amProxy.dataArrays[daName] = daProxy;
+          DataArrayProxy daProxy = amProxy.getDataArrays().value(daName);
+          daProxy.setFlag(value.toBool());
+          amProxy.getDataArrays()[daName] = daProxy;
         }
 
-        dcProxy.attributeMatricies[amName] = amProxy;
+        dcProxy.getAttributeMatricies()[amName] = amProxy;
       }
 
-      m_Proxy.dataContainers[dcName] = dcProxy;
+      m_Proxy.getDataContainers()[dcName] = dcProxy;
 
       emit dataChanged(indexesChanged[0], indexesChanged[indexesChanged.size() - 1]);
 
@@ -451,7 +451,7 @@ bool DREAM3DFileTreeModel::populateTreeWithProxy(DataContainerArrayProxy proxy)
 {
   clearModel();
 
-  for(QMap<QString, DataContainerProxy>::iterator dcIter = proxy.dataContainers.begin(); dcIter != proxy.dataContainers.end(); dcIter++)
+  for(QMap<QString, DataContainerProxy>::iterator dcIter = proxy.getDataContainers().begin(); dcIter != proxy.getDataContainers().end(); dcIter++)
   {
     QString dcName = dcIter.key();
     DataContainerProxy dcProxy = dcIter.value();
@@ -462,7 +462,7 @@ bool DREAM3DFileTreeModel::populateTreeWithProxy(DataContainerArrayProxy proxy)
     setItemType(dcIndex, DREAM3DFileItem::ItemType::DataContainer);
     setData(dcIndex, dcName, Qt::DisplayRole);
 
-    for(QMap<QString, AttributeMatrixProxy>::iterator amIter = dcProxy.attributeMatricies.begin(); amIter != dcProxy.attributeMatricies.end(); amIter++)
+    for(QMap<QString, AttributeMatrixProxy>::iterator amIter = dcProxy.getAttributeMatricies().begin(); amIter != dcProxy.getAttributeMatricies().end(); amIter++)
     {
       QString amName = amIter.key();
       AttributeMatrixProxy amProxy = amIter.value();
@@ -473,7 +473,7 @@ bool DREAM3DFileTreeModel::populateTreeWithProxy(DataContainerArrayProxy proxy)
       setItemType(amIndex, DREAM3DFileItem::ItemType::AttributeMatrix);
       setData(amIndex, amName, Qt::DisplayRole);
 
-      for(QMap<QString, DataArrayProxy>::iterator daIter = amProxy.dataArrays.begin(); daIter != amProxy.dataArrays.end(); daIter++)
+      for(QMap<QString, DataArrayProxy>::iterator daIter = amProxy.getDataArrays().begin(); daIter != amProxy.getDataArrays().end(); daIter++)
       {
         QString daName = daIter.key();
         DataArrayProxy daProxy = daIter.value();
@@ -487,7 +487,7 @@ bool DREAM3DFileTreeModel::populateTreeWithProxy(DataContainerArrayProxy proxy)
     }
 
     // Set the check state after adding all the items to the Data Container, so that the check state propagates through the whole Data Container sub-tree
-    setData(dcIndex, dcProxy.flag, Qt::CheckStateRole);
+    setData(dcIndex, dcProxy.getFlag(), Qt::CheckStateRole);
   }
 
   m_Proxy = proxy;
