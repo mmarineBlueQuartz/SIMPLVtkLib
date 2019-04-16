@@ -102,11 +102,11 @@ SIMPLVtkBridge::WrappedDataContainerPtrCollection SIMPLVtkBridge::WrapDataContai
     return wrappedDataContainers;
   }
 
-  QList<DataContainer::Pointer> dcs = dca->getDataContainers();
+  std::vector<DataContainer::Pointer> dcs = dca->getDataContainers();
 
-  for(QList<DataContainer::Pointer>::Iterator dc = dcs.begin(); dc != dcs.end(); ++dc)
+  for(const auto& dc : dcs)
   {
-    WrappedDataContainerPtr wrappedDataContainer = WrapDataContainerAsStruct((*dc));
+    WrappedDataContainerPtr wrappedDataContainer = WrapDataContainerAsStruct(dc);
 
     if(wrappedDataContainer)
     {
@@ -142,18 +142,16 @@ SIMPLVtkBridge::WrappedDataContainerPtr SIMPLVtkBridge::WrapDataContainerAsStruc
     wrappedDcStruct->m_DataContainer = dc;
     wrappedDcStruct->m_Name = dc->getName();
 
-    DataContainer::AttributeMatrixMap_t attrMats = dc->getAttributeMatrices();
-
-    for(DataContainer::AttributeMatrixMap_t::Iterator attrMat = attrMats.begin(); attrMat != attrMats.end(); ++attrMat)
+    for(const auto& attrMat : (*dc))
     {
-      if(!(*attrMat))
+      if(!(attrMat))
       {
         continue;
       }
       // Wrap Cell data
-      if(AttributeMatrix::Type::Cell == (*attrMat)->getType())
+      if(AttributeMatrix::Type::Cell == attrMat->getType())
       {
-        wrappedDcStruct->m_CellData = WrapAttributeMatrixAsStructs((*attrMat));
+        wrappedDcStruct->m_CellData = WrapAttributeMatrixAsStructs(attrMat);
 
         // Add vtkDataArrays to the vtkDataSet
         vtkCellData* cellData = dataSet->GetCellData();
@@ -197,9 +195,9 @@ SIMPLVtkBridge::WrappedDataContainerPtr SIMPLVtkBridge::WrapDataContainerAsStruc
         dataSet->DeepCopy(pointDataSet);
       }
       // Wrap Vertex data
-      else if(AttributeMatrix::Type::Vertex == (*attrMat)->getType())
+      else if(AttributeMatrix::Type::Vertex == attrMat->getType())
       {
-        wrappedDcStruct->m_PointData = WrapAttributeMatrixAsStructs((*attrMat));
+        wrappedDcStruct->m_PointData = WrapAttributeMatrixAsStructs(attrMat);
 
         // Add vtkDataArrays to the vtkDataSet
         vtkPointData* pointData = dataSet->GetPointData();
@@ -470,12 +468,9 @@ void SIMPLVtkBridge::FinishWrappingDataContainerStruct(WrappedDataContainerPtr w
   VTK_PTR(vtkDataSet) dataSet = wrappedDcStruct->m_DataSet;
   wrappedDcStruct->m_CellData.clear();
   wrappedDcStruct->m_PointData.clear();
-  DataContainer::AttributeMatrixMap_t amMap = wrappedDcStruct->m_DataContainer->getAttributeMatrices();
-
-  for(DataContainer::AttributeMatrixMap_t::Iterator amIter = amMap.begin(); amIter != amMap.end(); ++amIter)
+  
+  for(const auto& attrMat : (*wrappedDcStruct->m_DataContainer))
   {
-    AttributeMatrix::Pointer attrMat = (*amIter);
-
     if(!attrMat)
     {
       continue;
@@ -777,18 +772,15 @@ VTK_PTR(vtkDataSet) SIMPLVtkBridge::WrapGeometry(VertexGeom::Pointer geom)
 // -----------------------------------------------------------------------------
 VTK_PTR(vtkDataSet) SIMPLVtkBridge::WrapGeometry(ImageGeom::Pointer image)
 {
-  float res[3] = {0.0f, 0.0f, 0.0f};
-  float origin[3] = {0.0f, 0.0f, 0.0f};
-
   std::tuple<size_t, size_t, size_t> dims = image->getDimensions();
-  image->getResolution(res);
-  image->getOrigin(origin);
+  SIMPL::Tuple3FVec res = image->getSpacing();
+  SIMPL::Tuple3FVec origin = image->getOrigin();
 
   VTK_NEW(vtkImageData, vtkImage);
-  vtkImage->SetExtent(origin[0], origin[0] + std::get<0>(dims), origin[1], origin[1] + std::get<1>(dims), origin[2], origin[2] + std::get<2>(dims));
+  vtkImage->SetExtent(std::get<0>(origin), std::get<0>(origin) + std::get<0>(dims), std::get<1>(origin), std::get<1>(origin) + std::get<1>(dims), std::get<2>(origin), std::get<2>(origin) + std::get<2>(dims));
   vtkImage->SetDimensions(std::get<0>(dims) + 1, std::get<1>(dims) + 1, std::get<2>(dims) + 1);
-  vtkImage->SetSpacing(res[0], res[1], res[2]);
-  vtkImage->SetOrigin(origin[0], origin[1], origin[2]);
+  vtkImage->SetSpacing(std::get<0>(res), std::get<1>(res), std::get<2>(res));
+  vtkImage->SetOrigin(std::get<0>(origin), std::get<1>(origin), std::get<2>(origin));
 
   return vtkImage;
 }
