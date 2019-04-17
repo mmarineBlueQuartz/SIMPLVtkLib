@@ -79,9 +79,9 @@
 
 namespace
 {
-  const AttributeMatrix::Types CellTypes = { AttributeMatrix::Type::Cell, AttributeMatrix::Type::Face, AttributeMatrix::Type::Edge };
-  const AttributeMatrix::Types PointTypes = { AttributeMatrix::Type::Vertex };
-}
+const AttributeMatrix::Types CellTypes = {AttributeMatrix::Type::Cell, AttributeMatrix::Type::Face, AttributeMatrix::Type::Edge};
+const AttributeMatrix::Types PointTypes = {AttributeMatrix::Type::Vertex};
+} // namespace
 
 // -----------------------------------------------------------------------------
 //
@@ -326,7 +326,6 @@ QStringList SIMPLVtkBridge::GetPointArrayNames(WrappedDataContainerPtr wrappedDc
   return arrayNames;
 }
 
-
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
@@ -468,7 +467,7 @@ void SIMPLVtkBridge::FinishWrappingDataContainerStruct(WrappedDataContainerPtr w
   VTK_PTR(vtkDataSet) dataSet = wrappedDcStruct->m_DataSet;
   wrappedDcStruct->m_CellData.clear();
   wrappedDcStruct->m_PointData.clear();
-  
+
   for(const auto& attrMat : (*wrappedDcStruct->m_DataContainer))
   {
     if(!attrMat)
@@ -503,8 +502,7 @@ void SIMPLVtkBridge::FinishWrappingDataContainerStruct(WrappedDataContainerPtr w
   for(WrappedDataArrayPtr wrappedCellData : wrappedDcStruct->m_CellData)
   {
     QString matrixArrayName = wrappedCellData->m_AttributeMatrix->getName() + "::" + wrappedCellData->m_ArrayName;
-    if(wrappedDcStruct->m_ImportCellArrays.find(matrixArrayName) != wrappedDcStruct->m_ImportCellArrays.end() &&
-       wrappedDcStruct->m_ImportCellArrays[matrixArrayName] == true)
+    if(wrappedDcStruct->m_ImportCellArrays.find(matrixArrayName) != wrappedDcStruct->m_ImportCellArrays.end() && wrappedDcStruct->m_ImportCellArrays[matrixArrayName] == true)
     {
       cellData->AddArray(wrappedCellData->m_VtkArray);
     }
@@ -531,8 +529,7 @@ void SIMPLVtkBridge::FinishWrappingDataContainerStruct(WrappedDataContainerPtr w
   for(WrappedDataArrayPtr wrappedPointData : wrappedDcStruct->m_PointData)
   {
     QString matrixArrayName = wrappedPointData->m_AttributeMatrix->getName() + "::" + wrappedPointData->m_ArrayName;
-    if(wrappedDcStruct->m_ImportPointArrays.find(matrixArrayName) != wrappedDcStruct->m_ImportPointArrays.end() &&
-       wrappedDcStruct->m_ImportPointArrays[matrixArrayName] == true)
+    if(wrappedDcStruct->m_ImportPointArrays.find(matrixArrayName) != wrappedDcStruct->m_ImportPointArrays.end() && wrappedDcStruct->m_ImportPointArrays[matrixArrayName] == true)
     {
       pointData->AddArray(wrappedPointData->m_VtkArray);
     }
@@ -777,7 +774,8 @@ VTK_PTR(vtkDataSet) SIMPLVtkBridge::WrapGeometry(ImageGeom::Pointer image)
   SIMPL::Tuple3FVec origin = image->getOrigin();
 
   VTK_NEW(vtkImageData, vtkImage);
-  vtkImage->SetExtent(std::get<0>(origin), std::get<0>(origin) + std::get<0>(dims), std::get<1>(origin), std::get<1>(origin) + std::get<1>(dims), std::get<2>(origin), std::get<2>(origin) + std::get<2>(dims));
+  vtkImage->SetExtent(std::get<0>(origin), std::get<0>(origin) + std::get<0>(dims), std::get<1>(origin), std::get<1>(origin) + std::get<1>(dims), std::get<2>(origin),
+                      std::get<2>(origin) + std::get<2>(dims));
   vtkImage->SetDimensions(std::get<0>(dims) + 1, std::get<1>(dims) + 1, std::get<2>(dims) + 1);
   vtkImage->SetSpacing(std::get<0>(res), std::get<1>(res), std::get<2>(res));
   vtkImage->SetOrigin(std::get<0>(origin), std::get<1>(origin), std::get<2>(origin));

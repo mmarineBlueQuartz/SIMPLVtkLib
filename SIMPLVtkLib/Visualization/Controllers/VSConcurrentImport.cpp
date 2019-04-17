@@ -242,7 +242,7 @@ void VSConcurrentImport::partialWrappingThreadFinished()
 
     // Select the last filter
     m_UnappliedDataFilterLock.acquire();
-    //if(m_UnappliedDataFilters.size() > 0)
+    // if(m_UnappliedDataFilters.size() > 0)
     //{
     //  m_Controller->selectFilter(m_UnappliedDataFilters.back());
     //}

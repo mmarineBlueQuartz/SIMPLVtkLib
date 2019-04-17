@@ -36,8 +36,7 @@
 #pragma once
 
 #include <QtCore/QModelIndex>
-
-#include <QStyledItemDelegate>
+#include <QtWidgets/QStyledItemDelegate>
 
 class DREAM3DFileItemDelegate : public QStyledItemDelegate
 {
@@ -56,9 +55,8 @@ protected:
   void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const Q_DECL_OVERRIDE;
 
 public:
-  DREAM3DFileItemDelegate(const DREAM3DFileItemDelegate&) = delete; // Copy Constructor Not Implemented
-    DREAM3DFileItemDelegate(DREAM3DFileItemDelegate&&) = delete; // Move Constructor Not Implemented
-    DREAM3DFileItemDelegate& operator=(const DREAM3DFileItemDelegate&) = delete; // Copy Assignment Not Implemented
-    DREAM3DFileItemDelegate& operator=(DREAM3DFileItemDelegate&&) = delete; // Move Assignment Not Implemented
-
+  DREAM3DFileItemDelegate(const DREAM3DFileItemDelegate&) = delete;            // Copy Constructor Not Implemented
+  DREAM3DFileItemDelegate(DREAM3DFileItemDelegate&&) = delete;                 // Move Constructor Not Implemented
+  DREAM3DFileItemDelegate& operator=(const DREAM3DFileItemDelegate&) = delete; // Copy Assignment Not Implemented
+  DREAM3DFileItemDelegate& operator=(DREAM3DFileItemDelegate&&) = delete;      // Move Assignment Not Implemented
 };

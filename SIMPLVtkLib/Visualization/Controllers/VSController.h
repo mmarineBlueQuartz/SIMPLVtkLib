@@ -166,7 +166,7 @@ public:
    * @brief Alert the VSMainWidgetBase, if available, that the given filter should be selected.
    * @param filter
    */
-  //void selectFilter(VSAbstractFilter* filter);
+  // void selectFilter(VSAbstractFilter* filter);
 
 signals:
   void filterAdded(VSAbstractFilter*, bool currentFilter);
@@ -174,7 +174,7 @@ signals:
   void filterCheckStateChanged(VSAbstractFilter* filter);
   void blockRender(bool block);
   void dataImported();
-  //void filterSelected(VSAbstractFilter* filter);
+  // void filterSelected(VSAbstractFilter* filter);
   void applyingDataFilters(int count);
   void dataFilterApplied(int num);
 

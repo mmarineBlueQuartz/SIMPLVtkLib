@@ -58,8 +58,6 @@ void VSAdvancedVisibilitySettingsWidget::setupGui()
   pointSizeValidator->setBottom(1);
   m_Ui->pointSizeEdit->setValidator(pointSizeValidator);
 
-  m_Ui->viewAxesGridCheckBox->
-
   connect(m_Ui->pointSizeEdit, &QLineEdit::textChanged, this, &VSAdvancedVisibilitySettingsWidget::updatePointSize);
   connect(m_Ui->pointSphereCheckBox, &QCheckBox::stateChanged, this, &VSAdvancedVisibilitySettingsWidget::updateRenderPointSpheres);
   connect(m_Ui->viewAxesGridCheckBox, &QCheckBox::stateChanged, this, &VSAdvancedVisibilitySettingsWidget::setAxesGridVisible);
