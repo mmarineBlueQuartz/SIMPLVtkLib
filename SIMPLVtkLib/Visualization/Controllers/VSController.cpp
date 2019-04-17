@@ -36,12 +36,20 @@
 #include "VSController.h"
 
 #include <QtCore/QFile>
+#include <QtCore/QFileInfo>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QUuid>
 
+#include <QtWidgets/QMessageBox>
+
 #include "SIMPLib/Utilities/SIMPLH5DataReader.h"
 #include "SIMPLib/Utilities/SIMPLH5DataReaderRequirements.h"
+
+#include "SIMPLVtkLib/Dialogs/FijiListWidget.h"
+#include "SIMPLVtkLib/Dialogs/Utilities/TileConfigFileGenerator.h"
+
+#include "SIMPLVtkLib/QtWidgets/VSFilterFactory.h"
 
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSClipFilter.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSCropFilter.h"
@@ -53,6 +61,13 @@
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSTextFilter.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSThresholdFilter.h"
 
+#include "SIMPLVtkLib/Dialogs/RobometListWidget.h"
+#include "SIMPLVtkLib/Dialogs/Utilities/ImporterWorker.h"
+#include "SIMPLVtkLib/Dialogs/ZeissListWidget.h"
+
+#include "SIMPLVtkLib/Wizards/PerformMontage/PerformMontageConstants.h"
+#include "SIMPLVtkLib/Wizards/PerformMontage/PerformMontageWizard.h"
+
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
@@ -61,6 +76,8 @@ VSController::VSController(QObject* parent)
 , m_FilterModel(new VSFilterModel())
 {
   m_ImportObject = new VSConcurrentImport(this);
+
+  qRegisterMetaType<VSAbstractImporter::Pointer>();
 
   connect(m_FilterModel, &VSFilterModel::filterAdded, this, &VSController::filterAdded);
   connect(m_FilterModel, &VSFilterModel::filterRemoved, this, &VSController::filterRemoved);
@@ -112,6 +129,20 @@ void VSController::importPipelineOutput(FilterPipeline::Pointer pipeline, DataCo
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+void VSController::importPipelineOutput(std::vector<FilterPipeline::Pointer> pipelines)
+{
+  m_ImportObject->setLoadType(VSConcurrentImport::LoadType::Import);
+  for(FilterPipeline::Pointer pipeline : pipelines)
+  {
+    DataContainerArray::Pointer dca = pipeline->getDataContainerArray();
+    m_ImportObject->addDataContainerArray(pipeline, dca);
+  }
+  m_ImportObject->run();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
 void VSController::reloadPipelineOutput(FilterPipeline::Pointer pipeline, DataContainerArray::Pointer dca)
 {
   VSPipelineFilter* parentFilter = dynamic_cast<VSPipelineFilter*>(getFilterModel()->getPipelineFilter(pipeline));
@@ -154,27 +185,6 @@ void VSController::importDataContainer(DataContainer::Pointer dc)
   }
 
   emit dataImported();
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void VSController::importData(const QString& filePath)
-{
-  VSFileNameFilter* textFilter = new VSFileNameFilter(filePath);
-  VSDataSetFilter* filter = new VSDataSetFilter(filePath, textFilter);
-  // Check if any data was imported
-  if(filter->getOutput())
-  {
-    m_FilterModel->addFilter(textFilter, false);
-    m_FilterModel->addFilter(filter);
-
-    emit dataImported();
-  }
-  else
-  {
-    textFilter->deleteLater();
-  }
 }
 
 #if 0
@@ -222,6 +232,117 @@ bool VSController::saveSession(const QString& sessionFilePath)
     // "Failed to open output file" error
     return false;
   }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSController::saveAsImage(const QString& imageFilePath, VSAbstractFilter* filter)
+{
+  bool imageSaved = false;
+  VSSIMPLDataContainerFilter* dcFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(filter);
+  if(dcFilter != nullptr)
+  {
+    VSFilterFactory::Pointer filterFactory = VSFilterFactory::New();
+    FilterPipeline::Pointer pipeline = FilterPipeline::New();
+    DataContainer::Pointer dataContainer = dcFilter->getWrappedDataContainer()->m_DataContainer;
+    DataContainer::Container_t attributeMatricies = dataContainer->getAttributeMatrices();
+    QString dcName = dataContainer->getName();
+    QString amName;
+    QString dataArrayName;
+    for(AttributeMatrix::Pointer am : attributeMatricies)
+    {
+      if(am->getType() == AttributeMatrix::Type::Cell)
+      {
+        amName = am->getName();
+        dataArrayName = am->getAttributeArrayNames().first();
+      }
+    }
+    DataContainerArray::Pointer dca = DataContainerArray::New();
+    dca->addOrReplaceDataContainer(dataContainer);
+    AbstractFilter::Pointer imageWriter = filterFactory->createImageFileWriterFilter(imageFilePath, dcName, amName, dataArrayName);
+    if(imageWriter != AbstractFilter::NullPointer())
+    {
+      pipeline->pushBack(imageWriter);
+      pipeline->execute(dca);
+      if(pipeline->getErrorCode() >= 0)
+      {
+        imageSaved = true;
+      }
+    }
+  }
+  return imageSaved;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSController::saveAsDREAM3D(const QString& outputFilePath, VSAbstractFilter* filter)
+{
+  bool dream3dFileSaved = false;
+  VSFilterFactory::Pointer filterFactory = VSFilterFactory::New();
+  FilterPipeline::Pointer pipeline = FilterPipeline::New();
+  DataContainerArray::Pointer dca = DataContainerArray::New();
+  VSSIMPLDataContainerFilter* dcFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(filter);
+  VSPipelineFilter* pipelineFilter = dynamic_cast<VSPipelineFilter*>(filter);
+  VSFileNameFilter* filenameFilter = dynamic_cast<VSFileNameFilter*>(filter);
+
+  // If it is a data container filter, get the parent filter (a pipeline)
+  if(dcFilter != nullptr)
+  {
+    pipelineFilter = dynamic_cast<VSPipelineFilter*>(dcFilter->getParentFilter());
+  }
+  if(pipelineFilter != nullptr)
+  {
+    VSAbstractFilter::FilterListType children = pipelineFilter->getChildren();
+    for(VSAbstractFilter* childFilter : children)
+    {
+      dcFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(childFilter);
+      if(dcFilter != nullptr)
+      {
+        DataContainer::Pointer dataContainer = dcFilter->getWrappedDataContainer()->m_DataContainer;
+        if(dataContainer != nullptr)
+        {
+          dca->addOrReplaceDataContainer(dataContainer);
+        }
+      }
+    }
+  }
+  else if(filenameFilter != nullptr)
+  {
+    VSAbstractFilter::FilterListType children = filenameFilter->getChildren();
+    for(VSAbstractFilter* childFilter : children)
+    {
+      dcFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(childFilter);
+      if(dcFilter != nullptr)
+      {
+        DataContainer::Pointer dataContainer = dcFilter->getWrappedDataContainer()->m_DataContainer;
+        if(dataContainer != nullptr)
+        {
+          double* pos = dcFilter->getTransform()->getLocalPosition();
+          ImageGeom::Pointer geom = dataContainer->getGeometryAs<ImageGeom>();
+          geom->setOrigin(pos[0], pos[1], pos[2]);
+          dca->addOrReplaceDataContainer(dataContainer);
+        }
+      }
+    }
+  }
+  else
+  {
+    return false;
+  }
+
+  AbstractFilter::Pointer dcWriter = filterFactory->createDataContainerWriterFilter(outputFilePath, true, false);
+  if(dcWriter != AbstractFilter::NullPointer())
+  {
+    pipeline->pushBack(dcWriter);
+    pipeline->execute(dca);
+    if(pipeline->getErrorCode() >= 0)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 // -----------------------------------------------------------------------------

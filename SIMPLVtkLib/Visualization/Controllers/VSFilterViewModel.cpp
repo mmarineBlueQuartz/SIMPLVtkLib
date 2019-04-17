@@ -36,6 +36,8 @@
 #include "VSFilterViewModel.h"
 
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSRootFilter.h"
+#include "SIMPLVtkLib/Visualization/VisualFilters/VSSIMPLDataContainerFilter.h"
+#include "vtkActor.h"
 
 // -----------------------------------------------------------------------------
 //
@@ -288,6 +290,23 @@ VSFilterViewSettings* VSFilterViewModel::createFilterViewSettings(VSAbstractFilt
   }
 
   VSFilterViewSettings* viewSettings = new VSFilterViewSettings(filter);
+  if(m_DisplayType == AbstractImportMontageDialog::DisplayType::NotSpecified)
+  {
+    viewSettings = new VSFilterViewSettings(filter);
+  }
+  else
+  {
+    VSFilterViewSettings::Representation representation = VSFilterViewSettings::Representation::Outline;
+    if(m_DisplayType == AbstractImportMontageDialog::DisplayType::SideBySide || m_DisplayType == AbstractImportMontageDialog::DisplayType::Montage)
+    {
+      representation = VSFilterViewSettings::Representation::Surface;
+    }
+    viewSettings = new VSFilterViewSettings(filter, representation, m_DisplayType);
+  }
+
+  // connect(filter, &VSAbstractFilter::removeFilter, this, [=] { removeFilterViewSettings(filter); });
+  // connect(viewSettings, &VSFilterViewSettings::visibilityChanged, this, [=] { filterVisibilityChanged(); });
+
   m_FilterViewSettings[filter] = viewSettings;
 
   if(filter->getParentFilter() && filter->getParentFilter()->getOutput())
@@ -721,4 +740,12 @@ QModelIndexList VSFilterViewModel::convertIndicesFromFilterModel(const QModelInd
   }
 
   return localModelIndices;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSFilterViewModel::setDisplayType(AbstractImportMontageDialog::DisplayType displayType)
+{
+  m_DisplayType = displayType;
 }

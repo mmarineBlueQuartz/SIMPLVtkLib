@@ -43,12 +43,14 @@
 #include <QtCore/QThread>
 #include <QtCore/QUuid>
 #include <QtGui/QKeySequence>
+#include <QtWidgets/QInputDialog>
 #include <QtWidgets/QShortcut>
 
 #include <QtWidgets/QMessageBox>
 
 #include <QVTKInteractor.h>
 
+#include "SIMPLib/DataContainers/DataContainerArrayProxy.h"
 #include "SIMPLib/Utilities/SIMPLH5DataReader.h"
 #include "SIMPLib/Utilities/SIMPLH5DataReaderRequirements.h"
 
@@ -65,6 +67,8 @@
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSSliceFilter.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSTextFilter.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSThresholdFilter.h"
+#include "SIMPLVtkLib/Wizards/ExecutePipeline/ExecutePipelineConstants.h"
+#include "SIMPLVtkLib/Wizards/PerformMontage/PerformMontageConstants.h"
 
 // -----------------------------------------------------------------------------
 //
@@ -86,8 +90,13 @@ void VSMainWidgetBase::connectSlots()
   connect(m_Controller, &VSController::filterAdded, this, &VSMainWidgetBase::filterAdded);
   connect(m_Controller, &VSController::filterRemoved, this, &VSMainWidgetBase::filterRemoved);
   connect(m_Controller, &VSController::blockRender, this, &VSMainWidgetBase::setBlockRender);
+  //<<<<<<< HEAD
 
-  connect(this, &VSMainWidgetBase::proxyFromFilePathGenerated, this, &VSMainWidgetBase::launchSIMPLSelectionDialog);
+  // connect(this, &VSMainWidgetBase::proxyFromFilePathGenerated, this, &VSMainWidgetBase::launchSIMPLSelectionDialog);
+  //=======
+  connect(m_Controller, &VSController::importDataQueueStarted, this, &VSMainWidgetBase::importDataQueueStarted);
+  connect(m_Controller, &VSController::importDataQueueFinished, this, &VSMainWidgetBase::importDataQueueFinished);
+  //>>>>>>> develop-BQ
 }
 
 // -----------------------------------------------------------------------------
@@ -124,14 +133,14 @@ void VSMainWidgetBase::setupShortcuts()
   connect(addFilterRightShortcut, &QShortcut::activated, [=] { changeFilterSelected(VSAbstractViewWidget::FilterStepChange::NextSibling, true); });
 
   QShortcut* applyFilterShortcut = new QShortcut(QKeySequence(Qt::Key_Return), this);
-  QShortcut* resetFilterShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
+  // QShortcut* resetFilterShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
   QShortcut* deleteFilterShortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
   applyFilterShortcut->setContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
-  resetFilterShortcut->setContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
+  // resetFilterShortcut->setContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
   deleteFilterShortcut->setContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
 
   connect(applyFilterShortcut, &QShortcut::activated, [=] { applyCurrentFilter(); });
-  connect(resetFilterShortcut, &QShortcut::activated, [=] { resetCurrentFilter(); });
+  // connect(resetFilterShortcut, &QShortcut::activated, [=] { resetCurrentFilter(); });
   connect(deleteFilterShortcut, &QShortcut::activated, [=] { deleteCurrentFilter(); });
 
   QShortcut* toggleVisibleShortcut = new QShortcut(QKeySequence(Qt::Key_Tab), this);
@@ -191,6 +200,7 @@ void VSMainWidgetBase::setFilterView(VSFilterView* view)
     disconnect(m_FilterView, &VSFilterView::deleteFilterRequested, this, &VSMainWidgetBase::deleteFilter);
     disconnect(m_FilterView, &VSFilterView::reloadFilterRequested, this, &VSMainWidgetBase::reloadDataFilter);
     disconnect(m_FilterView, &VSFilterView::reloadFileFilterRequested, this, &VSMainWidgetBase::reloadFileFilter);
+    disconnect(view, &VSFilterView::renameFilterRequested, this, &VSMainWidgetBase::renameDataFilter);
     disconnect(m_FilterView, &VSFilterView::filterClicked, this, &VSMainWidgetBase::setCurrentFilter);
     disconnect(this, &VSMainWidgetBase::changedActiveView, m_FilterView, &VSFilterView::setViewWidget);
   }
@@ -199,6 +209,7 @@ void VSMainWidgetBase::setFilterView(VSFilterView* view)
   connect(view, &VSFilterView::deleteFilterRequested, this, &VSMainWidgetBase::deleteFilter);
   connect(view, &VSFilterView::reloadFilterRequested, this, &VSMainWidgetBase::reloadDataFilter);
   connect(view, &VSFilterView::reloadFileFilterRequested, this, &VSMainWidgetBase::reloadFileFilter);
+  connect(view, &VSFilterView::renameFilterRequested, this, &VSMainWidgetBase::renameDataFilter);
   connect(view, &VSFilterView::filterClicked, this, &VSMainWidgetBase::setCurrentFilter);
   connect(this, &VSMainWidgetBase::changedActiveView, view, &VSFilterView::setViewWidget);
 
@@ -327,7 +338,7 @@ void VSMainWidgetBase::setAdvancedVisibilityWidget(VSAdvancedVisibilitySettingsW
 
   m_AdvancedVisibilityWidget = widget;
 
-  if(m_ColorMappingWidget)
+  if(m_AdvancedVisibilityWidget)
   {
     connect(this, &VSMainWidgetBase::selectedFiltersChanged, m_AdvancedVisibilityWidget, &VSAdvancedVisibilitySettingsWidget::setFilters);
     connect(this, &VSMainWidgetBase::changedActiveView, m_AdvancedVisibilityWidget, &VSAdvancedVisibilitySettingsWidget::setViewWidget);
@@ -371,6 +382,7 @@ void VSMainWidgetBase::setInfoWidget(VSInfoWidget* infoWidget)
     setVisibilitySettingsWidget(infoWidget->getVisibilitySettingsWidget());
     setColorMappingWidget(infoWidget->getColorMappingWidget());
     setTransformWidget(infoWidget->getTransformWidget());
+    setAdvancedVisibilityWidget(infoWidget->getAdvancedVisibilitySettingsWidget());
   }
 }
 
@@ -449,126 +461,10 @@ void VSMainWidgetBase::filterRemoved(VSAbstractFilter* filter)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSMainWidgetBase::importFiles(QStringList filePaths)
-{
-  for(int i = 0; i < filePaths.size(); i++)
-  {
-    QString filePath = filePaths[i];
-
-    QMimeDatabase db;
-
-    QMimeType mimeType = db.mimeTypeForFile(filePath, QMimeDatabase::MatchContent);
-    QString mimeName = mimeType.name();
-
-    QFileInfo fi(filePath);
-    QString ext = fi.completeSuffix().toLower();
-    if(ext == "dream3d")
-    {
-      openDREAM3DFile(filePath);
-    }
-    else if(mimeType.inherits("image/png") || mimeType.inherits("image/tiff") || mimeType.inherits("image/jpeg") || mimeType.inherits("image/bmp"))
-    {
-      m_Controller->importData(filePath);
-    }
-    else if(ext == "vtk" || ext == "vti" || ext == "vtp" || ext == "vtr" || ext == "vts" || ext == "vtu")
-    {
-      m_Controller->importData(filePath);
-    }
-    else if(ext == "stl")
-    {
-      m_Controller->importData(filePath);
-    }
-    else
-    {
-      QMessageBox::critical(this, "Invalid File Type",
-                            tr("IMF Viewer failed to open the file because the file extension, '.%1', is not supported by the "
-                               "application.")
-                                .arg(ext),
-                            QMessageBox::StandardButton::Ok);
-      continue;
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void VSMainWidgetBase::importFilterPipeline(FilterPipeline::Pointer pipeline, DataContainerArray::Pointer dca)
-{
-  m_Controller->importPipelineOutput(pipeline, dca);
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void VSMainWidgetBase::openDREAM3DFile(const QString& filePath)
-{
-  QFileInfo fi(filePath);
-
-  SIMPLH5DataReader reader;
-  connect(&reader, SIGNAL(errorGenerated(const QString&, const QString&, const int&)), this, SLOT(generateError(const QString&, const QString&, const int&)));
-
-  bool success = reader.openFile(filePath);
-  if(success)
-  {
-    int err = 0;
-    SIMPLH5DataReaderRequirements req(SIMPL::Defaults::AnyPrimitive, SIMPL::Defaults::AnyComponentSize, AttributeMatrix::Type::Any, IGeometry::Type::Any);
-    DataContainerArrayProxy proxy = reader.readDataContainerArrayStructure(&req, err);
-    if(proxy.getDataContainers().isEmpty())
-    {
-      return;
-    }
-
-    QStringList dcNames = proxy.getDataContainers().keys();
-    for(int i = 0; i < dcNames.size(); i++)
-    {
-      QString dcName = dcNames[i];
-      DataContainerProxy dcProxy = proxy.getDataContainers()[dcName];
-
-      // We want only data containers with geometries displayed
-      if(dcProxy.getDCType() == static_cast<unsigned int>(DataContainer::Type::Unknown))
-      {
-        proxy.getDataContainers().remove(dcName);
-      }
-      else
-      {
-        QStringList amNames = dcProxy.getAttributeMatricies().keys();
-        for(int j = 0; j < amNames.size(); j++)
-        {
-          QString amName = amNames[j];
-          AttributeMatrixProxy amProxy = dcProxy.getAttributeMatricies()[amName];
-
-          // We want only cell attribute matrices displayed
-          if(amProxy.getAMType() != AttributeMatrix::Type::Cell)
-          {
-            dcProxy.getAttributeMatricies().remove(amName);
-            proxy.getDataContainers()[dcName] = dcProxy;
-          }
-        }
-      }
-    }
-
-    if(proxy.getDataContainers().size() <= 0)
-    {
-      QMessageBox::critical(this, "Invalid Data",
-                            tr("IMF Viewer failed to open file '%1' because the file does not "
-                               "contain any data containers with a supported geometry.")
-                                .arg(fi.fileName()),
-                            QMessageBox::StandardButton::Ok);
-      return;
-    }
-
-    emit proxyFromFilePathGenerated(proxy, filePath);
-  }
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void VSMainWidgetBase::launchSIMPLSelectionDialog(DataContainerArrayProxy proxy, const QString& filePath)
+void VSMainWidgetBase::launchHDF5SelectionDialog(const QString& filePath)
 {
   QSharedPointer<LoadHDF5FileDialog> dialog = QSharedPointer<LoadHDF5FileDialog>(new LoadHDF5FileDialog());
-  dialog->setProxy(proxy);
+  dialog->setHDF5FilePath(filePath);
   int ret = dialog->exec();
 
   if(ret == QDialog::Accepted)
@@ -586,10 +482,44 @@ void VSMainWidgetBase::launchSIMPLSelectionDialog(DataContainerArrayProxy proxy,
       {
         return;
       }
-
       m_Controller->importDataContainerArray(filePath, dca);
     }
   }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSMainWidgetBase::importDataContainerArray(const QString& filePath, DataContainerArray::Pointer dca)
+{
+  m_Controller->importDataContainerArray(filePath, dca);
+  return true;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSMainWidgetBase::importPipelineOutput(FilterPipeline::Pointer pipeline, DataContainerArray::Pointer dca)
+{
+  m_Controller->importPipelineOutput(pipeline, dca);
+  return true;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSMainWidgetBase::importPipelineOutput(std::vector<FilterPipeline::Pointer> pipelines)
+{
+  m_Controller->importPipelineOutput(pipelines);
+  return true;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSMainWidgetBase::importFilterPipeline(FilterPipeline::Pointer pipeline, DataContainerArray::Pointer dca)
+{
+  m_Controller->importPipelineOutput(pipeline, dca);
 }
 
 // -----------------------------------------------------------------------------
@@ -822,6 +752,7 @@ void VSMainWidgetBase::deleteFilter(VSAbstractFilter* filter)
   }
 
   m_Controller->getFilterModel()->removeFilter(filter);
+  emit selectedFiltersChanged(getActiveViewWidget()->getSelectedFilters());
 }
 
 // -----------------------------------------------------------------------------
@@ -845,6 +776,30 @@ void VSMainWidgetBase::reloadDataFilter(VSAbstractDataFilter* filter)
   filters.push_back(filter);
 
   QtConcurrent::run(this, &VSMainWidgetBase::reloadFilters, filters);
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSMainWidgetBase::renameDataFilter(VSAbstractDataFilter* filter)
+{
+  bool ok;
+  VSSIMPLDataContainerFilter* dcFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(filter);
+  if(dcFilter != nullptr)
+  {
+    DataContainer::Pointer dataContainer = dcFilter->getWrappedDataContainer()->m_DataContainer;
+    if(dataContainer != nullptr)
+    {
+      VSSIMPLDataContainerValues* dcValues = dynamic_cast<VSSIMPLDataContainerValues*>(dcFilter->getValues());
+      QString dcName = QInputDialog::getText(this, tr("Rename Filter"), tr("New Data Container Name:"), QLineEdit::Normal, dcFilter->getFilterName(), &ok);
+      if(ok && !dcName.isEmpty())
+      {
+        dcValues->getWrappedDataContainer()->m_Name = dcName;
+        dataContainer->setName(dcName);
+        dcFilter->setText(dcName);
+      }
+    }
+  }
 }
 
 // -----------------------------------------------------------------------------

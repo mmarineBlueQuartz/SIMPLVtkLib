@@ -83,6 +83,16 @@ public:
   void OnDoubleClick();
 
   /**
+   * @brief Performs any necessary actions when the mouse wheel is scrolled backward
+   */
+  void OnMouseWheelForward() override;
+
+  /**
+   * @brief Performs any necessary actions when the mouse wheel is scrolled backward
+   */
+  void OnMouseWheelBackward() override;
+
+  /**
    * @brief Sets the VSAbstractViewWidget for selecting filters from
    * @param viewWidget
    */
@@ -101,7 +111,16 @@ protected:
     None = 0,
     Translate,
     Rotate,
-    Scale
+    Scale,
+    ResetTransform
+  };
+
+  enum class Axis
+  {
+    None = 0,
+    X,
+    Y,
+    Z
   };
 
   /**
@@ -115,6 +134,18 @@ protected:
    * @param type
    */
   void setActionType(ActionType type);
+
+  /**
+   * @brief Returns the Axis for the interactor style
+   * @return
+   */
+  Axis getAxis();
+
+  /**
+   * @brief Sets the Axis for the interactor style
+   * @param axis
+   */
+  void setAxis(Axis axis);
 
   /**
    * @brief Ends the current action
@@ -223,6 +254,34 @@ protected:
   void cancelScaling();
 
   /**
+<<<<<<< HEAD
+=======
+   * @brief Resets the transform of the selected filter
+   */
+  void resetTransform();
+
+  /**
+   * @brief Undo the transform of the selected filter
+   */
+  void undoTransform();
+
+  /**
+   * @brief Redo the transform of the selected filter
+   */
+  void redoTransform();
+
+  /**
+   * @brief Selects all the filters
+   */
+  void selectAllFilters();
+
+  /**
+   * @brief Deselects all the filters
+   */
+  void deselectAllFilters();
+
+  /**
+>>>>>>> develop-BQ
    * @brief Returns true if the CTRL key is down.  Returns false otherwise.
    * @return
    */
@@ -251,10 +310,25 @@ protected:
    */
   void updateLinkedRenderWindows();
 
+  /**
+   * @brief Determine the amount of subsampling to perform, if any
+   */
+  void determineSubsampling();
+
+  /**
+   * @brief Update the active transform text
+   */
+  void updateTransformText();
+
 private:
   VSAbstractFilter* m_ActiveFilter = nullptr;
   vtkProp3D* m_ActiveProp = nullptr;
   ActionType m_ActionType = ActionType::None;
+  Axis m_ActionAxis = Axis::None;
+  bool m_CustomTransform = false;
+  QString m_CustomTransformAmount;
+  std::map<VSAbstractFilter*, VSTransform*> m_PreviousTransforms;
+  std::map<VSAbstractFilter*, VSTransform*> m_LastUndoneTransforms;
   // Position
   double* m_InitialPosition;
   double m_Translation[3];

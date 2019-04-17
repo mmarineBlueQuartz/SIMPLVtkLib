@@ -49,9 +49,12 @@
 #include <vtkCubeAxesActor.h>
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkOutlineFilter.h>
+#include <vtkPlaneSource.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarWidget.h>
+#include <vtkTexture.h>
 
+#include "SIMPLVtkLib/Dialogs/AbstractImportMontageDialog.h"
 #include "SIMPLVtkLib/Visualization/Controllers/VSLookupTableController.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSAbstractFilter.h"
 
@@ -143,7 +146,8 @@ public:
    * @brief Constructor
    * @param filter
    */
-  VSFilterViewSettings(VSAbstractFilter* filter);
+  VSFilterViewSettings(VSAbstractFilter* filter, Representation representation = Representation::Default,
+                       AbstractImportMontageDialog::DisplayType displayType = AbstractImportMontageDialog::DisplayType::NotSpecified);
 
   /**
    * @brief Copy constructor
@@ -437,6 +441,41 @@ public:
   QAction* getToggleScalarBarAction();
 
   /**
+   * @brief Returns the subsampling rate.
+   * @return
+   */
+  int getSubsampling() const;
+
+  /**
+   * @brief Set the display type
+   * @param displayType
+   */
+  void setDisplayType(AbstractImportMontageDialog::DisplayType displayType);
+
+  /**
+   * @brief Get the display type
+   * @return
+   */
+  AbstractImportMontageDialog::DisplayType getDisplayType();
+
+  /**
+   * @brief Set the default transform
+   * @param defaultTransform
+   */
+  void setDefaultTransform(VSTransform* defaultTransform);
+
+  /**
+   * @brief Get the display type
+   * @return
+   */
+  VSTransform* getDefaultTransform();
+
+  /**
+   * @brief Gets whether image is flat
+   */
+  bool isFlat();
+
+  /**
    * @brief Returns the QIcon used for solid colors
    * @return
    */
@@ -570,6 +609,13 @@ public:
   static void SetActiveComponentIndex(VSFilterViewSettings::Collection collection, int index);
 
   /**
+   * @brief Sets the subsampling for items in the collection
+   * @param collection
+   * @param index
+   */
+  static void SetSubsampling(VSFilterViewSettings::Collection collection, int value);
+
+  /**
    * @brief Returns the number of components for the given arrayName in the collection.
    * @param collection
    * @param arrayName
@@ -645,6 +691,12 @@ public:
    * @return
    */
   static double GetAlpha(VSFilterViewSettings::Collection collection);
+
+  /**
+   * @brief Returns the subsampling to display in the user interface for the collection.
+   * @return
+   */
+  static double GetSubsampling(VSFilterViewSettings::Collection collection);
 
 public slots:
   /**
@@ -754,6 +806,12 @@ public slots:
    */
   void updateTransform();
 
+  /**
+   * @brief Handles updated input to show textured quads
+   * @param filter
+   */
+  void inputUpdated(VSAbstractFilter* filter);
+
 signals:
   void visibilityChanged(const bool&);
   void gridVisibilityChanged(const bool&);
@@ -767,6 +825,7 @@ signals:
   void arrayNamesChanged();
   void scalarNamesChanged();
   void componentNamesChanged();
+  void subsamplingChanged(const int&);
 
   void representationChanged(const Representation&);
   void mapColorsChanged(const ColorMapping&);
@@ -926,6 +985,16 @@ protected:
    */
   void updateScalarBarVisibility();
 
+  /**
+   * @brief Update the subsampling for the texture image
+   */
+  void setSubsampling(int value);
+
+  /**
+   * @brief Update the texture
+   */
+  void updateTexture();
+
 private:
   VSAbstractFilter* m_Filter = nullptr;
   ActorType m_ActorType = ActorType::Invalid;
@@ -933,11 +1002,17 @@ private:
   bool m_ShowFilter = true;
   QString m_ActiveArrayName;
   int m_ActiveComponent = -1;
+  int m_Subsampling = 1;
   ColorMapping m_MapColors = ColorMapping::NonColors;
   Representation m_Representation = Representation::Default;
+  AbstractImportMontageDialog::DisplayType m_DisplayType = AbstractImportMontageDialog::DisplayType::NotSpecified;
+  VSTransform* m_DefaultTransform = nullptr;
   VTK_PTR(vtkAbstractMapper3D) m_Mapper = nullptr;
   VTK_PTR(vtkProp3D) m_Actor = nullptr;
+  VTK_PTR(vtkProp3D) m_OutlineActor = nullptr;
+  VTK_PTR(vtkTexture) m_Texture = nullptr;
   VTK_PTR(vtkOutlineFilter) m_OutlineFilter = nullptr;
+  VTK_PTR(vtkPlaneSource) m_Plane = nullptr;
   VSLookupTableController* m_LookupTable = nullptr;
   ScalarBarSetting m_ScalarBarSetting = ScalarBarSetting::OnSelection;
   double m_Alpha = 1.0;

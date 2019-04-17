@@ -35,6 +35,7 @@
 
 #include "VSFilterViewDelegate.h"
 
+#include <QtGui/QGuiApplication>
 #include <QtGui/QPainter>
 #include <QtWidgets/QLineEdit>
 
@@ -259,6 +260,11 @@ void VSFilterViewDelegate::updateEditorGeometry(QWidget* editor, const QStyleOpt
 // -----------------------------------------------------------------------------
 void VSFilterViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
+  QStyleOptionViewItem op(option);
+  painter->setPen(QPen());
+  painter->setBrush(QBrush());
+  painter->setFont(op.font);
+
   // Get Text / Background Color
   QColor textColor;
   QColor backgroundColor;
@@ -284,6 +290,22 @@ void VSFilterViewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& 
   {
     textColor = SVStyle::Instance()->getQTreeViewItem_color();
     backgroundColor = SVStyle::Instance()->getQTreeViewItem_background_color();
+  }
+
+  if(!backgroundColor.isValid())
+  {
+    if(option.state & QStyle::State_Selected)
+    {
+      backgroundColor = option.palette.color(QPalette::Highlight);
+    }
+    else if(option.features & QStyleOptionViewItem::Alternate)
+    {
+      backgroundColor = option.palette.color(QPalette::AlternateBase);
+    }
+    else
+    {
+      backgroundColor = option.palette.color(QPalette::Base);
+    }
   }
 
   // Fill Background

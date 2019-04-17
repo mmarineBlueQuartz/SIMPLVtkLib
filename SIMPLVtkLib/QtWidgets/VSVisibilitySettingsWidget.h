@@ -120,6 +120,12 @@ protected slots:
    */
   void listenSolidColor();
 
+  /**
+   * @brief Handles the subsampling spin box being changed
+   * @param value
+   */
+  void subsampleValueChanged(int value);
+
 protected:
   /**
    * @brief Performs initial setup for the GUI

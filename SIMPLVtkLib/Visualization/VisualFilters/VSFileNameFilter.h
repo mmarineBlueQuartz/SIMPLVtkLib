@@ -35,8 +35,8 @@
 
 #pragma once
 
-#include "SIMPLVtkLib/Visualization/VisualFilters/VSTextFilter.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSFileNameValues.h"
+#include "SIMPLVtkLib/Visualization/VisualFilters/VSTextFilter.h"
 
 /**
  * @class VSFileNameFilter VSFileNameFilter.h
@@ -86,7 +86,7 @@ public:
    * @brief Returns the file name
    * @return
    */
-  QString getFileName();
+  QString getFileName() const;
 
   /**
    * @brief Returns the filter's name

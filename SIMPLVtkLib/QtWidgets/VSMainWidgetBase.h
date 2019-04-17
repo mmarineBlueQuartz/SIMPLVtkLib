@@ -171,10 +171,25 @@ public:
   void setTransformWidget(VSTransformWidget* widget);
 
   /**
-   * @brief importFiles
-   * @param filePaths
+   * @brief importDataContainerArray
+   * @param dca
    */
-  void importFiles(QStringList filePaths);
+  bool importDataContainerArray(const QString& filePath, DataContainerArray::Pointer dca);
+
+  /**
+   * @brief importPipelineOutput
+   * @param pipeline
+   * @param dca
+   * @return
+   */
+  bool importPipelineOutput(FilterPipeline::Pointer pipeline, DataContainerArray::Pointer dca);
+
+  /**
+   * @brief importPipelineOutput
+   * @param pipelines
+   * @return
+   */
+  bool importPipelineOutput(std::vector<FilterPipeline::Pointer> pipelines);
 
   /**
    * @brief Imports or reloads the given DataContainerArray from the FilterPipeline
@@ -254,10 +269,18 @@ public slots:
    */
   void selectFilters(VSAbstractFilter::FilterListType filters);
 
+  /**
+   * @brief launchHDF5SelectionDialog
+   * @param proxy
+   */
+  void launchHDF5SelectionDialog(const QString& filePath);
+
 signals:
   void changedActiveView(VSAbstractViewWidget* viewWidget);
   void proxyFromFilePathGenerated(DataContainerArrayProxy proxy, const QString& filePath);
   void selectedFiltersChanged(VSAbstractFilter::FilterListType filters);
+  void importDataQueueStarted();
+  void importDataQueueFinished();
 
 protected:
   /**
@@ -372,6 +395,12 @@ protected slots:
   virtual void reloadDataFilter(VSAbstractDataFilter* filter);
 
   /**
+   * @brief renameFilter
+   * @param filter
+   */
+  virtual void renameDataFilter(VSAbstractDataFilter* filter);
+
+  /**
    * @brief reloadFileFilter
    * @param filter
    */
@@ -403,12 +432,6 @@ protected slots:
   void filterRemoved(VSAbstractFilter* filter);
 
   /**
-   * @brief launchSIMPLSelectionDialog
-   * @param proxy
-   */
-  void launchSIMPLSelectionDialog(DataContainerArrayProxy proxy, const QString& filePath);
-
-  /**
    * @brief generateError
    * @param title
    * @param msg
@@ -430,12 +453,6 @@ private:
 
   // QMap<VSAbstractFilter*, VSAbstractFilterWidget*> m_FilterToFilterWidgetMap;
 
-  /**
-   * @brief openDREAM3DFile
-   * @param filePath
-   * @param instance
-   */
-  void openDREAM3DFile(const QString& filePath);
   /**
    * @brief reloadFilters
    * @param filter

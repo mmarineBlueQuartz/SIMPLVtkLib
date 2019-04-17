@@ -40,6 +40,9 @@
 #include "SIMPLVtkLib/Visualization/Controllers/VSFilterModel.h"
 #include "SIMPLVtkLib/Visualization/Controllers/VSFilterViewSettings.h"
 
+#include <vtkActor.h>
+#include <vtkImageSlice.h>
+
 /**
  * @class VSFilterViewModel VSFilterViewModel.h SIMPLVtkLib/QtWidgets/VSFilterViewModel.h
  * @brief This class handles the visual filter model for the VSController alongside a
@@ -279,6 +282,12 @@ public:
    */
   std::vector<VSFilterViewSettings*> getAllFilterViewSettings() const;
 
+  /**
+   * @brief Set the display type for visualization output
+   * @param displayType
+   */
+  void setDisplayType(AbstractImportMontageDialog::DisplayType displayType);
+
 signals:
   void viewSettingsCreated(VSFilterViewSettings*) const;
   void viewSettingsRemoved(VSFilterViewSettings*);
@@ -335,6 +344,7 @@ protected:
 private:
   VSFilterModel* m_FilterModel = nullptr;
   mutable VSFilterViewSettings::Map m_FilterViewSettings;
+  AbstractImportMontageDialog::DisplayType m_DisplayType = AbstractImportMontageDialog::DisplayType::NotSpecified;
 };
 
 Q_DECLARE_METATYPE(VSFilterViewModel)

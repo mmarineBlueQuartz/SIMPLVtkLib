@@ -42,7 +42,10 @@
 #include <vtkCellData.h>
 #include <vtkDataArray.h>
 #include <vtkDataSet.h>
+#include <vtkExtractVOI.h>
 #include <vtkImageData.h>
+#include <vtkPointSet.h>
+#include <vtkTransformFilter.h>
 
 #include "SIMPLib/Geometry/ImageGeom.h"
 #include "SIMPLib/Utilities/SIMPLH5DataReader.h"

@@ -63,6 +63,7 @@ void VSVisibilitySettingsWidget::setupGui()
   connect(m_Ui->representationCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(representationComboChanged(int)));
   connect(m_Ui->activeArrayCombo, SIGNAL(currentIndexChanged(const QString&)), this, SLOT(arrayNameComboChanged(const QString&)));
   connect(m_Ui->activeComponentCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(arrayComponentComboChanged(int)));
+  connect(m_Ui->subsampleSB, SIGNAL(valueChanged(int)), this, SLOT(subsampleValueChanged(int)));
 
   connect(m_Ui->colorBtn, &VSColorButton::changedColor, this, &VSVisibilitySettingsWidget::colorButtonChanged);
 
@@ -121,6 +122,7 @@ void VSVisibilitySettingsWidget::connectFilterViewSettings(VSFilterViewSettings:
     disconnect(setting, &VSFilterViewSettings::activeComponentIndexChanged, this, &VSVisibilitySettingsWidget::listenComponentIndex);
     disconnect(setting, &VSFilterViewSettings::solidColorChanged, this, &VSVisibilitySettingsWidget::listenSolidColor);
     disconnect(setting, &VSFilterViewSettings::dataLoaded, this, &VSVisibilitySettingsWidget::updateFilterInfo);
+    disconnect(setting, &VSFilterViewSettings::subsamplingChanged, m_Ui->subsampleSB, &QSpinBox::setValue);
   }
 
   m_ViewSettings = settings;
@@ -132,6 +134,7 @@ void VSVisibilitySettingsWidget::connectFilterViewSettings(VSFilterViewSettings:
     connect(setting, &VSFilterViewSettings::activeComponentIndexChanged, this, &VSVisibilitySettingsWidget::listenComponentIndex);
     connect(setting, &VSFilterViewSettings::solidColorChanged, this, &VSVisibilitySettingsWidget::listenSolidColor);
     connect(setting, &VSFilterViewSettings::dataLoaded, this, &VSVisibilitySettingsWidget::updateFilterInfo);
+    connect(setting, &VSFilterViewSettings::subsamplingChanged, m_Ui->subsampleSB, &QSpinBox::setValue);
   }
 }
 
@@ -276,6 +279,12 @@ void VSVisibilitySettingsWidget::updateViewSettingInfo()
   {
     QColor solidColor = m_ViewSettings.front()->getSolidColor();
     m_Ui->colorBtn->setColor(solidColor, false);
+  }
+
+  int subsampling = VSFilterViewSettings::GetSubsampling(m_ViewSettings);
+  if(subsampling > 0)
+  {
+    m_Ui->subsampleSB->setValue(subsampling);
   }
 }
 
@@ -531,6 +540,14 @@ void VSVisibilitySettingsWidget::listenSolidColor()
   }
 
   m_Ui->colorBtn->setColor(color, false);
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSVisibilitySettingsWidget::subsampleValueChanged(int value)
+{
+  VSFilterViewSettings::SetSubsampling(m_ViewSettings, value);
 }
 
 // -----------------------------------------------------------------------------

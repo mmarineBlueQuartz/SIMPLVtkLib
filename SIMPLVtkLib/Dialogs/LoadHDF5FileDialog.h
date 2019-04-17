@@ -37,11 +37,13 @@
 
 #include <QtWidgets/QDialog>
 
+#include "SIMPLVtkLib/SIMPLVtkLib.h"
+
 #include "ui_LoadHDF5FileDialog.h"
 
 class DataContainerArrayProxy;
 
-class LoadHDF5FileDialog : public QDialog, public Ui::LoadHDF5FileDialog
+class SIMPLVtkLib_EXPORT LoadHDF5FileDialog : public QDialog
 {
   Q_OBJECT
 
@@ -56,13 +58,16 @@ public:
   DataContainerArrayProxy getDataStructureProxy();
 
   /**
-   * @brief setProxy
-   * @param proxy
+   * @brief setHDF5FilePath
+   * @param filePath
    */
-  void setProxy(DataContainerArrayProxy proxy);
+  void setHDF5FilePath(const QString &filePath);
 
 protected:
   void setupGui();
+
+private:
+  QSharedPointer<Ui::LoadHDF5FileDialog> m_Ui;
 
 public:
   LoadHDF5FileDialog(const LoadHDF5FileDialog&) = delete;    // Copy Constructor Not Implemented

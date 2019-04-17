@@ -147,12 +147,16 @@ foreach(h ${SIMPLVtkLib_Generated_RC_SRCS})
   set_property(SOURCE ${h} PROPERTY SKIP_AUTOMOC ON)
 endforeach()
 
+include(${${PROJECT_NAME}_SOURCE_DIR}/SIMPLVtkLib/Common/SourceList.cmake)
 include(${${PROJECT_NAME}_SOURCE_DIR}/SIMPLVtkLib/QtWidgets/SourceList.cmake)
 include(${${PROJECT_NAME}_SOURCE_DIR}/SIMPLVtkLib/SIMPLBridge/SourceList.cmake)
 include(${${PROJECT_NAME}_SOURCE_DIR}/SIMPLVtkLib/Visualization/SourceList.cmake)
 
   # -- Include the Dialogs sources
 include(${${PROJECT_NAME}_SOURCE_DIR}/SIMPLVtkLib/Dialogs/SourceList.cmake)
+
+  # -- Include the Wizards sources
+include(${${PROJECT_NAME}_SOURCE_DIR}/SIMPLVtkLib/Wizards/SourceList.cmake)
 
 #------------------------------------------------------------------------------
 # Clear these variables and look for any extra Widget Directories that the
@@ -183,6 +187,9 @@ set(Project_SRCS
   ${VS_VisualFilterWidgets_UIS}
   ${${PROJECT_NAME}_VisualFilterWidgets_Generated_UI_HDRS}
 
+  ${${PROJECT_NAME}_Common_HDRS}
+  ${${PROJECT_NAME}_Common_SRCS}
+
   ${${PROJECT_NAME}_VtkWidget_HDRS}
   ${${PROJECT_NAME}_VtkWidget_SRCS}
   ${${PROJECT_NAME}_VtkWidget_Generated_UI_HDRS}
@@ -193,6 +200,25 @@ set(Project_SRCS
   ${${PROJECT_NAME}_QtWidgets_HDRS}
   ${${PROJECT_NAME}_QtWidgets_SRCS}
   ${${PROJECT_NAME}_QtWidgets_Generated_UI_HDRS}
+
+  ${${PROJECT_NAME}_Wizards_HDRS}
+  ${${PROJECT_NAME}_Wizards_SRCS}
+
+  ${${PROJECT_NAME}_GenericMontage_HDRS}
+  ${${PROJECT_NAME}_GenericMontage_SRCS}
+  ${${PROJECT_NAME}_GenericMontage_Generated_UI_HDRS}
+
+  ${${PROJECT_NAME}_ImportMontage_HDRS}
+  ${${PROJECT_NAME}_ImportMontage_SRCS}
+  ${${PROJECT_NAME}_ImportMontage_Generated_UI_HDRS}
+
+  ${${PROJECT_NAME}_ExecutePipeline_HDRS}
+  ${${PROJECT_NAME}_ExecutePipeline_SRCS}
+  ${${PROJECT_NAME}_ExecutePipeline_Generated_UI_HDRS}
+
+  ${${PROJECT_NAME}_PerformMontage_HDRS}
+  ${${PROJECT_NAME}_PerformMontage_SRCS}
+  ${${PROJECT_NAME}_PerformMontage_Generated_UI_HDRS}
 
   ${${PROJECT_NAME}_Dialogs_Moc_HDRS}
   ${${PROJECT_NAME}_Dialogs_HDRS}
@@ -215,6 +241,7 @@ set(SIMPLVtk_VtkComponents
 		vtkFiltersGeometry
     vtkFiltersModeling
     vtkFiltersSources
+	vtkFiltersTexture
     vtkGUISupportQt
     vtkRenderingCore
     vtkRenderingFreeType
@@ -264,6 +291,12 @@ target_include_directories(SIMPLVtkLib
                               ${SIMPLVtkLib_SOURCE_DIR}/SIMPLVtkLib/Visualization/Controllers
                               ${SIMPLVtkLib_SOURCE_DIR}/SIMPLVtkLib/Visualization/VisualFilters
                               ${SIMPLVtkLib_SOURCE_DIR}/SIMPLVtkLib/Visualization/VtkWidgets
+                              ${SIMPLVtkLib_SOURCE_DIR}/SIMPLVtkLib/Dialogs
+                              ${SIMPLVtkLib_SOURCE_DIR}/SIMPLVtkLib/Wizards
+                              ${SIMPLVtkLib_SOURCE_DIR}/SIMPLVtkLib/Wizards/ExecutePipeline
+                              ${SIMPLVtkLib_SOURCE_DIR}/SIMPLVtkLib/Wizards/GenericMontage
+                              ${SIMPLVtkLib_SOURCE_DIR}/SIMPLVtkLib/Wizards/ImportMontage
+                              ${SIMPLVtkLib_SOURCE_DIR}/SIMPLVtkLib/Wizards/PerformMontage
                               ${SIMPLVtkLib_BINARY_PARENT_DIR})
 if(WIN32 AND BUILD_SHARED_LIBS)
     target_compile_definitions(SIMPLVtkLib PUBLIC "-DSIMPLVtkLib_BUILT_AS_DYNAMIC_LIB")
