@@ -1389,21 +1389,22 @@ void VSFilterViewSettings::setupDataSetActors()
   {
     vtkImageData* imageData = dynamic_cast<vtkImageData*>(outputData.Get());
 
-    double spacing[3];
-    imageData->GetSpacing(spacing);
+    int extent[6];
+    double origin[3];
+    double point1[3];
+    double point2[3];
+    imageData->GetExtent(extent);
+    imageData->GetOrigin(origin);
+    for(size_t i = 0; i < 3; i++)
+    {
+      point1[i] = origin[i] + extent[i * 2];
+      point2[i] = origin[i] + extent[i * 2 + 1];
+    }
 
-    // Get transform vectors
-    VSTransform* transform = m_Filter->getTransform();
-
-    double scaling[3] = {spacing[0], spacing[1], spacing[2]};
-
-    transform->setLocalScale(scaling);
-
-    // Save the initial transform
-    VSTransform* defaultTransform = getDefaultTransform();
-    defaultTransform->setLocalPosition(m_Filter->getTransform()->getLocalPosition());
-    defaultTransform->setLocalRotation(m_Filter->getTransform()->getLocalRotation());
-    defaultTransform->setLocalScale(m_Filter->getTransform()->getLocalScale());
+    plane->SetOrigin(origin);
+    plane->SetPoint1(point1);
+    plane->SetPoint2(point2);
+    plane->Update();
   }
   updateTransform();
 }
@@ -1461,43 +1462,10 @@ void VSFilterViewSettings::updateTransform()
     return;
   }
 
-  if(Representation::Outline == m_Representation)
-  {
-    VSTransform* transform = m_Filter->getTransform();
-    m_Actor->SetPosition(transform->getPosition());
-    m_Actor->SetOrientation(transform->getRotation());
-    m_Actor->SetScale(transform->getScale());
-  }
-  else if((ActorType::Image2D == m_ActorType || ActorType::DataSet == m_ActorType) && nullptr != dynamic_cast<vtkImageData*>(m_Filter->getOutput().Get()))
-  {
-    VTK_PTR(vtkDataSet) outputData = m_Filter->getOutput();
-    vtkImageData* imageData = dynamic_cast<vtkImageData*>(outputData.Get());
-    double bounds[6];
-    int extent[6];
-    imageData->GetBounds(bounds);
-    imageData->GetExtent(extent);
-    // Set Zmax to 1.0f for Image2D actor types
-    if(ActorType::Image2D == m_ActorType && extent[5] == 0)
-    {
-      extent[5] = 1.0f;
-    }
-
-    // Get transform vectors
-    VSTransform* transform = m_Filter->getTransform();
-    double* transformPosition = transform->getPosition();
-    double* transformRotation = transform->getRotation();
-    double* transformScale = transform->getScale();
-
-    m_Actor->SetPosition(transformPosition);
-    m_Actor->SetOrientation(transformRotation);
-    m_Actor->SetScale(extent[1] * transformScale[0], extent[3] * transformScale[1], extent[5] * transformScale[2]);
-  }
-  else
-  {
-    m_Actor->SetPosition(0.0, 0.0, 0.0);
-    m_Actor->SetOrientation(0.0, 0.0, 0.0);
-    m_Actor->SetScale(1.0, 1.0, 1.0);
-  }
+  VSTransform* transform = m_Filter->getTransform();
+  m_Actor->SetPosition(transform->getPosition());
+  m_Actor->SetOrientation(transform->getRotation());
+  m_Actor->SetScale(transform->getScale());
 
   if(m_CubeAxesActor && m_Filter->getOutput())
   {
