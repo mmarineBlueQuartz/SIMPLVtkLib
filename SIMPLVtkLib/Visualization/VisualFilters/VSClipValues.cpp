@@ -72,10 +72,10 @@ VSClipValues::VSClipValues(const VSClipValues& values)
 , m_PlaneWidget(new VSPlaneWidget(nullptr, values.getFilter()->getTransform(), values.getFilter()->getBounds(), nullptr))
 , m_ClipType(values.m_ClipType)
 , m_LastClipType(values.m_LastClipType)
-, m_LastBoxInverted(values.m_LastBoxInverted)
-, m_LastBoxTransform(values.m_LastBoxTransform)
 , m_LastPlaneInverted(values.m_LastPlaneInverted)
+, m_LastBoxInverted(values.m_LastBoxInverted)
 , m_FreshFilter(values.m_FreshFilter)
+, m_LastBoxTransform(values.m_LastBoxTransform)
 {
   m_PlaneWidget->setUsePlaneNormal(values.m_PlaneWidget->getUsePlaneNormal());
   m_PlaneWidget->setUsePlaneOrigin(values.m_PlaneWidget->getUsePlaneOrigin());
@@ -111,8 +111,6 @@ void VSClipValues::applyValues()
         break;
       case VSClipFilter::ClipType::BOX:
         break;
-      default:
-        break;
       }
     }
   }
@@ -129,7 +127,6 @@ void VSClipValues::resetValues()
   {
     return;
   }
-  VSClipFilter* filter = dynamic_cast<VSClipFilter*>(getFilter());
   m_ClipType = getLastClipType();
   emit clipTypeChanged(m_ClipType);
 
@@ -207,8 +204,6 @@ bool VSClipValues::hasChanges() const
       return true;
     }
     break;
-  default:
-    return false;
   }
 
   return false;
@@ -310,8 +305,6 @@ void VSClipValues::updateRendering()
       m_BoxWidget->disable();
       m_PlaneWidget->enable();
       break;
-    default:
-      break;
     }
   }
   else
@@ -348,8 +341,6 @@ QWidget* VSClipValues::createFilterWidget()
       ui.gridLayout->removeWidget(m_BoxWidget);
       m_BoxWidget->setParent(nullptr);
       ui.gridLayout->addWidget(m_PlaneWidget);
-      break;
-    default:
       break;
     }
   };
@@ -463,7 +454,7 @@ std::vector<double> VSClipValues::getLastBoxTranslationVector() const
   std::vector<double> origin(3);
   double* position = new double[3];
   m_LastBoxTransform->GetPosition(position);
-  for(int i = 0; i < 3; i++)
+  for(size_t i = 0; i < 3; i++)
   {
     origin[i] = position[i];
   }
@@ -479,7 +470,7 @@ std::vector<double> VSClipValues::getLastBoxRotationVector() const
   std::vector<double> rotation(3);
   double* rotationPtr = new double[3];
   m_LastBoxTransform->GetOrientation(rotationPtr);
-  for(int i = 0; i < 3; i++)
+  for(size_t i = 0; i < 3; i++)
   {
     rotation[i] = rotationPtr[i];
   }
@@ -495,7 +486,7 @@ std::vector<double> VSClipValues::getLastBoxScaleVector() const
   std::vector<double> scale(3);
   double* scalePtr = new double[3];
   m_LastBoxTransform->GetOrientation(scalePtr);
-  for(int i = 0; i < 3; i++)
+  for(size_t i = 0; i < 3; i++)
   {
     scale[i] = scalePtr[i];
   }

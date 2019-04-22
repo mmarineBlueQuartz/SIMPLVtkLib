@@ -156,8 +156,8 @@ QWidget* VSThresholdValues::createFilterWidget()
   const int numTicks = 1000;
   ui->minSlider->setRange(0, numTicks);
   ui->maxSlider->setRange(0, numTicks);
-  ui->minSlider->setValue(getMinPercent() * numTicks);
-  ui->maxSlider->setValue(getMaxPercent() * numTicks);
+  ui->minSlider->setValue(static_cast<int>(getMinPercent() * numTicks));
+  ui->maxSlider->setValue(static_cast<int>(getMaxPercent() * numTicks));
   ui->minSpinBox->setMinimum(m_Range[0]);
   ui->maxSpinBox->setMinimum(m_Range[0]);
   ui->minSpinBox->setMaximum(m_Range[1]);
@@ -174,15 +174,13 @@ QWidget* VSThresholdValues::createFilterWidget()
   });
   connect(this, &VSThresholdValues::minValueChanged, [=](double value) {
     ui->minSlider->blockSignals(true);
-    ui->minSlider->setValue(getMinPercent() * numTicks);
+    ui->minSlider->setValue(static_cast<int>(getMinPercent() * numTicks));
     ui->minSpinBox->setValue(value);
     ui->minSlider->blockSignals(false);
   });
   connect(this, &VSThresholdValues::maxValueChanged, [=](double value) {
     ui->maxSlider->blockSignals(true);
-    double percent = getMaxPercent();
-    int sliderValue = getMaxPercent() * numTicks;
-    ui->maxSlider->setValue(getMaxPercent() * numTicks);
+    ui->maxSlider->setValue(static_cast<int>(getMaxPercent() * numTicks));
     ui->maxSpinBox->setValue(value);
     ui->maxSlider->blockSignals(false);
   });

@@ -144,7 +144,6 @@ QWidget* VSMaskValues::createFilterWidget()
 {
   Ui::VSMaskFilterWidget* ui = new Ui::VSMaskFilterWidget;
   QWidget* filterWidget = new QWidget();
-  VSMaskFilter* filter = dynamic_cast<VSMaskFilter*>(getFilter());
 
   ui->maskComboBox->addItems(getFilter()->getScalarNames());
   ui->maskComboBox->setCurrentText(getLastArrayName());
