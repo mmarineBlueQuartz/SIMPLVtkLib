@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include <QtWidgets/QWidget>
+#include <QtWidgets/QFrame>
 
 #include "SIMPLVtkLib/QtWidgets/VSAbstractViewWidget.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSAbstractFilter.h"
@@ -50,7 +50,7 @@
  * SIMPLVtkLib/QtWidgets/VSFilterSettingsWidget.h
  * @brief This class handles the filter tree and filter widget for VSMainWidgetBase
  */
-class SIMPLVtkLib_EXPORT VSFilterSettingsWidget : public QWidget
+class SIMPLVtkLib_EXPORT VSFilterSettingsWidget : public QFrame
 {
   Q_OBJECT
 

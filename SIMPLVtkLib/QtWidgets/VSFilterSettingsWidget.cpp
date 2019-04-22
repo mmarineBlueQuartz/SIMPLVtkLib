@@ -43,10 +43,9 @@
 //
 // -----------------------------------------------------------------------------
 VSFilterSettingsWidget::VSFilterSettingsWidget(QWidget* parent)
-: QWidget(parent)
+: QFrame(parent)
 , m_Ui(new Ui::VSFilterSettingsWidget)
 {
-  m_Ui->setupUi(this);
   setupGui();
   setFilters(VSAbstractFilter::FilterListType());
 }
@@ -56,6 +55,8 @@ VSFilterSettingsWidget::VSFilterSettingsWidget(QWidget* parent)
 // -----------------------------------------------------------------------------
 void VSFilterSettingsWidget::setupGui()
 {
+  m_Ui->setupUi(this);
+
   connect(m_Ui->applyBtn, &QPushButton::clicked, this, &VSFilterSettingsWidget::applyFilter);
   connect(m_Ui->resetBtn, &QPushButton::clicked, this, &VSFilterSettingsWidget::resetFilter);
   connect(m_Ui->deleteBtn, &QPushButton::clicked, this, &VSFilterSettingsWidget::deleteFilter);
