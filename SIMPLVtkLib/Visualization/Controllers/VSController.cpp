@@ -83,7 +83,6 @@ VSController::VSController(QObject* parent)
   connect(m_FilterModel, &VSFilterModel::filterRemoved, this, &VSController::filterRemoved);
 
   // VSConcurrentImport works on another thread, so use the old-style connections to forward signals on the current thread
-  connect(m_ImportObject, SIGNAL(blockRender(bool)), this, SIGNAL(blockRender(bool)));
   connect(m_ImportObject, SIGNAL(applyingDataFilters(int)), this, SIGNAL(applyingDataFilters(int)));
   connect(m_ImportObject, SIGNAL(dataFilterApplied(int)), this, SIGNAL(dataFilterApplied(int)));
 }

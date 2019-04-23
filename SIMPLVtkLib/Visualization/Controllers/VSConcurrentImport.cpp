@@ -146,8 +146,6 @@ void VSConcurrentImport::importDataContainerArray(DcaGenericPair genericPair)
 
   m_ImportDataContainerOrder = dca->getDataContainers();
 
-  emit blockRender(true);
-
   // Wait for the filter lock
   m_FilterLock.acquire();
 
@@ -264,7 +262,6 @@ void VSConcurrentImport::partialWrappingThreadFinished()
     m_AppliedFilterCount = 0;
     m_AppliedFilterCountLock.release();
     m_WrappedDataContainers.clear();
-    emit blockRender(false);
     m_FilterLock.release();
 
     m_UnappliedDataFilterLock.acquire();

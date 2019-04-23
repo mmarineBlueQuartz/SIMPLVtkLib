@@ -323,7 +323,10 @@ void VSViewWidget::setFilterShowScalarBar(const bool& showScalarBar)
   VTK_PTR(vtkScalarBarWidget) scalarBarWidget = viewSettings->getScalarBarWidget();
   scalarBarWidget->SetEnabled(showScalarBar);
 
-  renderView();
+  if(!viewSettings->isRenderingBlocked())
+  {
+    renderView();
+  }
 }
 
 // -----------------------------------------------------------------------------

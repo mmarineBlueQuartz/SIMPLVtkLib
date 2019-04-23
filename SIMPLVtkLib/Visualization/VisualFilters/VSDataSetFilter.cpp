@@ -140,9 +140,7 @@ void VSDataSetFilter::createFilter()
   if(m_DataSet != nullptr)
   {
     updateDisplayName();
-
     m_DataSet->ComputeBounds();
-
     emit updatedOutputPort(this);
   }
   else
@@ -229,9 +227,7 @@ void VSDataSetFilter::reloadData()
   if(m_DataSet != nullptr)
   {
     updateDisplayName();
-
     m_DataSet->ComputeBounds();
-
     emit updatedOutputPort(this);
   }
   else

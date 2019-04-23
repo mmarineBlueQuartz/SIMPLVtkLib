@@ -770,14 +770,11 @@ VTK_PTR(vtkDataSet) SIMPLVtkBridge::WrapGeometry(ImageGeom::Pointer image)
 {
   std::tuple<size_t, size_t, size_t> dims = image->getDimensions();
   SIMPL::Tuple3FVec res = image->getSpacing();
-  SIMPL::Tuple3FVec origin = image->getOrigin();
 
   VTK_NEW(vtkImageData, vtkImage);
-  vtkImage->SetExtent(std::get<0>(origin), std::get<0>(origin) + std::get<0>(dims), std::get<1>(origin), std::get<1>(origin) + std::get<1>(dims), std::get<2>(origin),
-                      std::get<2>(origin) + std::get<2>(dims));
+  vtkImage->SetExtent(0.0, std::get<0>(dims), 0.0, std::get<1>(dims), 0.0, std::get<2>(dims));
   vtkImage->SetDimensions(std::get<0>(dims) + 1, std::get<1>(dims) + 1, std::get<2>(dims) + 1);
   vtkImage->SetSpacing(std::get<0>(res), std::get<1>(res), std::get<2>(res));
-  vtkImage->SetOrigin(std::get<0>(origin), std::get<1>(origin), std::get<2>(origin));
 
   return vtkImage;
 }

@@ -63,6 +63,28 @@ QIcon* VSFilterViewSettings::s_SolidColorIcon = nullptr;
 QIcon* VSFilterViewSettings::s_CellDataIcon = nullptr;
 QIcon* VSFilterViewSettings::s_PointDataIcon = nullptr;
 
+/**
+ * @brief The RenderBlocker class serves as a wrapper for VSFilterViewSettings::blockRendering(bool).
+ * The block is reset to its previous value upon its destruction.
+ */
+class RenderBlocker
+{
+public:
+  RenderBlocker(VSFilterViewSettings* settings)
+  : m_Settings(settings)
+  , m_InitBlockValue(settings->blockRendering(true))
+  {
+  }
+  ~RenderBlocker()
+  {
+    m_Settings->blockRendering(m_InitBlockValue);
+  }
+
+private:
+  VSFilterViewSettings* m_Settings;
+  bool m_InitBlockValue;
+};
+
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
@@ -95,6 +117,7 @@ VSFilterViewSettings::VSFilterViewSettings(VSAbstractFilter* filter, Representat
   {
     connect(filter, SIGNAL(updatedOutputPort(VSAbstractFilter*)), this, SLOT(inputUpdated(VSAbstractFilter*)));
   }
+  blockRendering(false);
 }
 
 // -----------------------------------------------------------------------------
@@ -134,6 +157,7 @@ VSFilterViewSettings::VSFilterViewSettings(const VSFilterViewSettings& copy)
       m_LookupTable->copy(*(copy.m_LookupTable));
     }
   }
+  blockRendering(false);
 }
 
 // -----------------------------------------------------------------------------
@@ -156,6 +180,8 @@ VSFilterViewSettings::~VSFilterViewSettings()
 // -----------------------------------------------------------------------------
 void VSFilterViewSettings::deepCopy(VSFilterViewSettings* target)
 {
+  RenderBlocker renderBlocker(this);
+
   connectFilter(target->m_Filter);
   setVisible(target->isVisible());
   setScalarBarVisible(target->isScalarBarVisible());
@@ -398,7 +424,7 @@ QStringList VSFilterViewSettings::getComponentNames()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-QStringList VSFilterViewSettings::getComponentNames(QString arrayName)
+QStringList VSFilterViewSettings::getComponentNames(const QString& arrayName)
 {
   if(m_Filter)
   {
@@ -441,7 +467,7 @@ int VSFilterViewSettings::getNumberOfComponents(int arrayIndex)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-int VSFilterViewSettings::getNumberOfComponents(QString arrayName)
+int VSFilterViewSettings::getNumberOfComponents(const QString& arrayName)
 {
   if(nullptr == m_Filter->getOutput())
   {
@@ -736,7 +762,7 @@ vtkDataArray* VSFilterViewSettings::getArrayAtIndex(int index)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-vtkDataArray* VSFilterViewSettings::getArrayByName(QString name) const
+vtkDataArray* VSFilterViewSettings::getArrayByName(const QString& name) const
 {
   vtkDataSet* dataSet = m_Filter->getOutput();
   if(nullptr == dataSet)
@@ -765,12 +791,13 @@ vtkDataArray* VSFilterViewSettings::getArrayByName(QString name) const
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSFilterViewSettings::setActiveArrayName(QString name)
+void VSFilterViewSettings::setActiveArrayName(const QString& name)
 {
   if(nullptr == getDataSetMapper())
   {
     return;
   }
+  RenderBlocker renderBlocker(this);
 
   // Check for Solid Color
   if(name.isNull())
@@ -780,7 +807,7 @@ void VSFilterViewSettings::setActiveArrayName(QString name)
 
     emit activeArrayNameChanged(m_ActiveArrayName);
     emit componentNamesChanged();
-    emit requiresRender();
+    attemptToRender();
 
     updateScalarBarVisibility();
     updateTexture();
@@ -810,7 +837,7 @@ void VSFilterViewSettings::setActiveComponentIndex(int index)
   {
     return;
   }
-
+  RenderBlocker renderBlocker(this);
   m_ActiveComponent = index;
 
   VTK_PTR(vtkScalarsToColors) lookupTable = mapper->GetLookupTable();
@@ -974,7 +1001,7 @@ void VSFilterViewSettings::setMapColors(ColorMapping mapColors)
 
   updateColorMode();
   emit mapColorsChanged(m_MapColors);
-  emit requiresRender();
+  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1006,7 +1033,7 @@ void VSFilterViewSettings::setAlpha(double alpha)
   }
 
   emit alphaChanged(m_Alpha);
-  emit requiresRender();
+  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1052,7 +1079,7 @@ void VSFilterViewSettings::invertScalarBar()
   }
 
   m_LookupTable->invert();
-  emit requiresRender();
+  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1066,7 +1093,7 @@ void VSFilterViewSettings::loadPresetColors(const QJsonObject& colors)
   }
 
   m_LookupTable->parseRgbJson(colors);
-  emit requiresRender();
+  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1147,6 +1174,7 @@ void VSFilterViewSettings::setupActors(bool outline)
     return;
   }
 
+  RenderBlocker renderBlocker(this);
   if(isFlatImage() && hasSinglePointArray())
   {
     setupImageActors();
@@ -1172,7 +1200,7 @@ void VSFilterViewSettings::setupActors(bool outline)
   {
     setRepresentation(Representation::Outline);
   }
-  emit requiresRender();
+  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1241,6 +1269,7 @@ bool VSFilterViewSettings::hasSinglePointArray()
 // -----------------------------------------------------------------------------
 void VSFilterViewSettings::setupImageActors()
 {
+  RenderBlocker renderBlocker(this);
   VTK_PTR(vtkDataSet) outputData = m_Filter->getOutput();
   VTK_PTR(vtkPlaneSource) plane = VTK_PTR(vtkPlaneSource)::New();
 
@@ -1283,6 +1312,7 @@ void VSFilterViewSettings::setupImageActors()
 // -----------------------------------------------------------------------------
 void VSFilterViewSettings::setupDataSetActors()
 {
+  RenderBlocker renderBlocker(this);
   VTK_PTR(vtkDataSet) outputData = m_Filter->getOutput();
   VTK_PTR(vtkPlaneSource) plane = VTK_PTR(vtkPlaneSource)::New();
 
@@ -1323,7 +1353,7 @@ void VSFilterViewSettings::setupDataSetActors()
   }
 
   m_DataSetFilter->SetInputConnection(m_Filter->getTransformedOutputPort());
-  m_OutlineFilter->SetInputConnection(m_Filter->getOutputPort());
+  m_OutlineFilter->SetInputConnection(m_Filter->getTransformedOutputPort());
 
   updateTexture();
 
@@ -1449,7 +1479,7 @@ void VSFilterViewSettings::updateInputPort(VSAbstractFilter* filter)
     m_Mapper->SetInputConnection(filter->getOutputPort());
     m_Actor->SetUserTransform(m_Filter->getTransform()->getGlobalTransform());
   }
-  emit requiresRender();
+  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1472,7 +1502,7 @@ void VSFilterViewSettings::updateTransform()
     m_CubeAxesActor->SetBounds(m_Filter->getTransformBounds());
   }
 
-  emit requiresRender();
+  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1563,7 +1593,7 @@ void VSFilterViewSettings::setSolidColorPtr(double* color)
   actor->GetProperty()->SetColor(color);
 
   emit solidColorChanged();
-  emit requiresRender();
+  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1652,7 +1682,7 @@ void VSFilterViewSettings::setPointSize(int pointSize)
   {
     getDataSetActor()->GetProperty()->SetPointSize(pointSize);
     emit pointSizeChanged(pointSize);
-    emit requiresRender();
+    attemptToRender();
   }
 }
 
@@ -1678,7 +1708,7 @@ void VSFilterViewSettings::setRenderPointsAsSpheres(bool renderSpheres)
   {
     getDataSetActor()->GetProperty()->SetRenderPointsAsSpheres(renderSpheres);
     emit renderPointSpheresChanged(renderSpheres);
-    emit requiresRender();
+    attemptToRender();
   }
 }
 
@@ -1687,6 +1717,7 @@ void VSFilterViewSettings::setRenderPointsAsSpheres(bool renderSpheres)
 // -----------------------------------------------------------------------------
 void VSFilterViewSettings::setRepresentation(const Representation& type)
 {
+  RenderBlocker renderBlocker(this);
   vtkActor* actor = getDataSetActor();
   if(nullptr == actor)
   {
@@ -1734,7 +1765,8 @@ void VSFilterViewSettings::setRepresentation(const Representation& type)
   updateTransform();
   updateScalarBarVisibility();
   emit representationChanged(type);
-  emit requiresRender();
+
+  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1742,6 +1774,7 @@ void VSFilterViewSettings::setRepresentation(const Representation& type)
 // -----------------------------------------------------------------------------
 void VSFilterViewSettings::importedData()
 {
+  RenderBlocker renderBlocker(this);
   if(dynamic_cast<VSAbstractDataFilter*>(getFilter()) && getRepresentation() == Representation::Outline)
   {
     setupActors(false);
@@ -1765,7 +1798,6 @@ void VSFilterViewSettings::importedData()
     setRepresentation(Representation::Surface);
   }
 
-  emit requiresRender();
   emit dataLoaded();
 }
 
@@ -1774,8 +1806,8 @@ void VSFilterViewSettings::importedData()
 // -----------------------------------------------------------------------------
 void VSFilterViewSettings::checkDataType()
 {
+  RenderBlocker renderBlocker(this);
   setupActors(false);
-  emit requiresRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1783,6 +1815,7 @@ void VSFilterViewSettings::checkDataType()
 // -----------------------------------------------------------------------------
 void VSFilterViewSettings::reloadedData()
 {
+  RenderBlocker renderBlocker(this);
   setupActors(false);
   emit actorsUpdated();
   emit dataLoaded();
@@ -1798,6 +1831,7 @@ void VSFilterViewSettings::copySettings(VSFilterViewSettings* copy)
     return;
   }
 
+  RenderBlocker renderBlocker(this);
   bool hasUi = copy->getScalarBarWidget();
   if(hasUi && m_ScalarBarWidget)
   {
@@ -1822,7 +1856,7 @@ void VSFilterViewSettings::copySettings(VSFilterViewSettings* copy)
     m_LookupTable->copy(*(copy->m_LookupTable));
   }
 
-  emit requiresRender();
+  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -2148,10 +2182,10 @@ bool VSFilterViewSettings::HasValidSettings(VSFilterViewSettings::Collection col
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-QStringList getMutualArrayNames(QStringList list1, QStringList list2)
+QStringList getMutualArrayNames(const QStringList& list1, const QStringList& list2)
 {
   QStringList mutualItems;
-  for(QString item : list1)
+  for(const QString& item : list1)
   {
     if(list2.contains(item))
     {
@@ -2191,7 +2225,7 @@ QStringList VSFilterViewSettings::GetArrayNames(VSFilterViewSettings::Collection
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-QStringList VSFilterViewSettings::GetComponentNames(VSFilterViewSettings::Collection collection, QString arrayName)
+QStringList VSFilterViewSettings::GetComponentNames(VSFilterViewSettings::Collection collection, const QString& arrayName)
 {
   if(collection.size() == 0 || arrayName.isEmpty())
   {
@@ -2277,7 +2311,7 @@ QString VSFilterViewSettings::GetActiveArrayName(VSFilterViewSettings::Collectio
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSFilterViewSettings::SetActiveArrayName(VSFilterViewSettings::Collection collection, QString arrayName)
+void VSFilterViewSettings::SetActiveArrayName(VSFilterViewSettings::Collection collection, const QString& arrayName)
 {
   for(VSFilterViewSettings* settings : collection)
   {
@@ -2337,7 +2371,7 @@ void VSFilterViewSettings::SetActiveComponentIndex(VSFilterViewSettings::Collect
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-int VSFilterViewSettings::GetNumberOfComponents(VSFilterViewSettings::Collection collection, QString arrayName)
+int VSFilterViewSettings::GetNumberOfComponents(VSFilterViewSettings::Collection collection, const QString& arrayName)
 {
   if(false == CheckComponentNamesCompatible(collection, arrayName))
   {
@@ -2360,7 +2394,7 @@ int VSFilterViewSettings::GetNumberOfComponents(VSFilterViewSettings::Collection
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-bool VSFilterViewSettings::CheckComponentNamesCompatible(VSFilterViewSettings::Collection collection, QString arrayName)
+bool VSFilterViewSettings::CheckComponentNamesCompatible(VSFilterViewSettings::Collection collection, const QString& arrayName)
 {
   if(collection.size() == 0)
   {
@@ -2713,6 +2747,7 @@ void VSFilterViewSettings::updateTexture()
 // -----------------------------------------------------------------------------
 void VSFilterViewSettings::inputUpdated(VSAbstractFilter* filter)
 {
+  RenderBlocker renderBlocker(this);
   if(filter->getOutput() != nullptr)
   {
     VTK_PTR(vtkCellData) cellData = filter->getOutput()->GetCellData();
@@ -2770,4 +2805,37 @@ VSTransform* VSFilterViewSettings::getDefaultTransform()
 bool VSFilterViewSettings::isFlat()
 {
   return isFlatImage();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSFilterViewSettings::blockRendering(bool block)
+{
+  bool currentBlock = m_BlockRendering;
+  m_BlockRendering = block;
+  if(!block && currentBlock)
+  {
+    emit requiresRender();
+  }
+  return currentBlock;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSFilterViewSettings::isRenderingBlocked() const
+{
+  return m_BlockRendering;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSFilterViewSettings::attemptToRender()
+{
+  if(!m_BlockRendering)
+  {
+    emit requiresRender();
+  }
 }

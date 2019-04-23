@@ -211,8 +211,21 @@ void VSAbstractViewWidget::checkFilterViewSetting(VSFilterViewSettings* setting)
       setting->getScalarBarWidget()->SetInteractor(getVisualizationWidget()->GetInteractor());
     }
 
+    // Only render once
+    bool tempRenderBlock = !m_BlockRender && !setting->isRenderingBlocked();
+    if(tempRenderBlock)
+    {
+      m_BlockRender = true;
+    }
+
     changeFilterVisibility(setting, setting->isVisible());
     changeScalarBarVisibility(setting, setting->isScalarBarVisible());
+    
+    if(tempRenderBlock)
+    {
+      m_BlockRender = false;
+      renderView();
+    }
   }
 }
 
@@ -307,7 +320,10 @@ void VSAbstractViewWidget::changeFilterVisibility(VSFilterViewSettings* viewSett
   }
 
   emit visibilityChanged(viewSettings, filterVisible);
-  renderView();
+  if(!viewSettings->isRenderingBlocked())
+  {
+    renderView();
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -345,7 +361,10 @@ void VSAbstractViewWidget::changeScalarBarVisibility(VSFilterViewSettings* viewS
     }
   }
 
-  renderView();
+  if(!viewSettings->isRenderingBlocked())
+  {
+    renderView();
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -423,7 +442,11 @@ void VSAbstractViewWidget::setFilterArrayName(const QString& name)
 // -----------------------------------------------------------------------------
 void VSAbstractViewWidget::setFilterComponentIndex(const int& index)
 {
-  renderView();
+  VSFilterViewSettings* viewSettings = dynamic_cast<VSFilterViewSettings*>(sender());
+  if(viewSettings && !viewSettings->isRenderingBlocked())
+  {
+    renderView();
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -431,7 +454,11 @@ void VSAbstractViewWidget::setFilterComponentIndex(const int& index)
 // -----------------------------------------------------------------------------
 void VSAbstractViewWidget::setFilterMapColors(const VSFilterViewSettings::ColorMapping& mapColorState)
 {
-  renderView();
+  VSFilterViewSettings* viewSettings = dynamic_cast<VSFilterViewSettings*>(sender());
+  if(viewSettings && !viewSettings->isRenderingBlocked())
+  {
+    renderView();
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -643,27 +670,6 @@ void VSAbstractViewWidget::closeView()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAbstractViewWidget::setBlockRender(bool block)
-{
-  m_BlockRender = block;
-
-  if(getVisualizationWidget() && getVisualizationWidget()->getRenderer())
-  {
-    if(block)
-    {
-      getVisualizationWidget()->getRenderer()->DrawOff();
-    }
-    else
-    {
-      getVisualizationWidget()->getRenderer()->DrawOn();
-      renderView();
-    }
-  }
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
 void VSAbstractViewWidget::renderView()
 {
   if(m_BlockRender)
@@ -672,7 +678,7 @@ void VSAbstractViewWidget::renderView()
   }
 
   VSVisualizationWidget* visualizationWidget = getVisualizationWidget();
-  if(visualizationWidget)
+  if(nullptr != visualizationWidget)
   {
     visualizationWidget->render();
   }
@@ -689,7 +695,7 @@ void VSAbstractViewWidget::resetCamera()
   }
 
   VSVisualizationWidget* visualizationWidget = getVisualizationWidget();
-  if(visualizationWidget && visualizationWidget->getRenderer())
+  if(nullptr != visualizationWidget && visualizationWidget->getRenderer())
   {
     visualizationWidget->getRenderer()->ResetCamera();
     visualizationWidget->render();

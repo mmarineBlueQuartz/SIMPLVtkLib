@@ -252,12 +252,6 @@ public slots:
   void renderAllViews();
 
   /**
-   * @brief Sets whether or not calls to render should be blocked
-   * @param block
-   */
-  void setBlockRender(bool block);
-
-  /**
    * @brief Selects the given filter in the active view
    * @param filter
    */

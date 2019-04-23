@@ -163,8 +163,8 @@ void VSVisibilitySettingsWidget::setViewWidget(VSAbstractViewWidget* viewWidget)
 void VSVisibilitySettingsWidget::updateFilterInfo()
 {
   // Add and set the array / component combo box values
-  m_Ui->activeArrayCombo->blockSignals(true);
-  m_Ui->activeComponentCombo->blockSignals(true);
+  QSignalBlocker activeArrayBlocker(m_Ui->activeArrayCombo);
+  QSignalBlocker activeCompBlocker(m_Ui->activeComponentCombo);
   m_Ui->activeArrayCombo->clear();
 
   if(m_Filters.size() > 0)
@@ -204,9 +204,6 @@ void VSVisibilitySettingsWidget::updateFilterInfo()
   {
     removeMultiValueOption(m_Ui->activeComponentCombo);
   }
-
-  m_Ui->activeArrayCombo->blockSignals(false);
-  m_Ui->activeComponentCombo->blockSignals(false);
 }
 
 // -----------------------------------------------------------------------------

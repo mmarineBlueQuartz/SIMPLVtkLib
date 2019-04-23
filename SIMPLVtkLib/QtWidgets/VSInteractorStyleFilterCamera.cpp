@@ -801,7 +801,7 @@ void VSInteractorStyleFilterCamera::beginTranslation()
   if(m_ActiveFilter && m_ActiveFilter->getTransform())
   {
     m_InitialPosition = m_ActiveFilter->getTransform()->getLocalPosition();
-    for(int i = 0; i < 3; i++)
+    for(size_t i = 0; i < 3; i++)
     {
       m_Translation[i] = 0.0;
     }

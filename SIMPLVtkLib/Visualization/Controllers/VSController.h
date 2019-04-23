@@ -192,7 +192,6 @@ signals:
   void filterAdded(VSAbstractFilter*, bool currentFilter);
   void filterRemoved(VSAbstractFilter*);
   void filterCheckStateChanged(VSAbstractFilter* filter);
-  void blockRender(bool block);
   void dataImported();
   // void filterSelected(VSAbstractFilter* filter);
   void applyingDataFilters(int count);

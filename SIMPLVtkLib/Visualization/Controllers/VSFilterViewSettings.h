@@ -249,7 +249,7 @@ public:
    * @brief Returns the component names available for the given array
    * @return
    */
-  QStringList getComponentNames(QString arrayName);
+  QStringList getComponentNames(const QString& arrayName);
 
   /**
    * @brief Returns the number of components for the given array
@@ -263,7 +263,7 @@ public:
    * @param arrayIndex
    * @return
    */
-  int getNumberOfComponents(QString name);
+  int getNumberOfComponents(const QString& name);
 
   /**
    * @brief Returns true if the active array has multiple components
@@ -476,6 +476,19 @@ public:
   bool isFlat();
 
   /**
+   * @brief Blocks / unblocks the requiresRender signal.  Returns the current block value.
+   * @param block
+   * @return
+   */
+  bool blockRendering(bool block);
+
+  /**
+   * @brief Returns true if the view settings is blocking the requiresRender() signal.
+   * @return
+   */
+  bool isRenderingBlocked() const;
+
+  /**
    * @brief Returns the QIcon used for solid colors
    * @return
    */
@@ -509,7 +522,7 @@ public:
    * @param collection
    * @param arrayName
    */
-  static QStringList GetComponentNames(VSFilterViewSettings::Collection collection, QString arrayName);
+  static QStringList GetComponentNames(VSFilterViewSettings::Collection collection, const QString& arrayName);
 
   /**
    * @brief Returns the first valid point size in the collection.  Returns -1 if none of the settings render as points.
@@ -592,7 +605,7 @@ public:
    * @param collection
    * @param arrayName
    */
-  static void SetActiveArrayName(VSFilterViewSettings::Collection collection, QString arrayName);
+  static void SetActiveArrayName(VSFilterViewSettings::Collection collection, const QString& arrayName);
 
   /**
    * @brief Returns the active component index for items in the collection.  If multiple indices are found, -2 is returned instead.
@@ -620,7 +633,7 @@ public:
    * @param collection
    * @param arrayName
    */
-  static int GetNumberOfComponents(VSFilterViewSettings::Collection collection, QString arrayName);
+  static int GetNumberOfComponents(VSFilterViewSettings::Collection collection, const QString& arrayName);
 
   /**
    * @brief Returns true if the given array for items in the collection are compatible
@@ -628,7 +641,7 @@ public:
    * @param arrayName
    * @return
    */
-  static bool CheckComponentNamesCompatible(VSFilterViewSettings::Collection collection, QString arrayName);
+  static bool CheckComponentNamesCompatible(VSFilterViewSettings::Collection collection, const QString& arrayName);
 
   /**
    * @brief Returns the active component name as a combination of the array and component name.
@@ -725,7 +738,7 @@ public slots:
    * @brief Updates the active array name for this view
    * @param name
    */
-  void setActiveArrayName(QString name);
+  void setActiveArrayName(const QString& name);
 
   /**
    * @brief Updates the active component index for this view
@@ -870,6 +883,11 @@ protected:
   void setupActions();
 
   /**
+   * @brief Emits the requiresRender signal if it is not blocked.
+   */
+  void attemptToRender();
+
+  /**
    * @brief Returns the vtkDataSetMapper if the ActorType is DataSet and the settings are valid.
    * Returns nullptr otherwise.
    * @return
@@ -949,7 +967,7 @@ protected:
    * @param name
    * @return
    */
-  vtkDataArray* getArrayByName(QString name) const;
+  vtkDataArray* getArrayByName(const QString& name) const;
 
   /**
    * @brief Updates the mapper color mode to match variable values
@@ -1022,6 +1040,7 @@ private:
   VTK_PTR(vtkCubeAxesActor) m_CubeAxesActor = nullptr;
   bool m_GridVisible = false;
   bool m_Selected = false;
+  bool m_BlockRendering = true;
 
   QAction* m_SetColorAction = nullptr;
   QAction* m_SetOpacityAction = nullptr;

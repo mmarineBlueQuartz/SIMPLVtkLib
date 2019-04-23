@@ -234,12 +234,6 @@ public slots:
   void updateScene();
 
   /**
-   * @brief Sets whether or not the render process should be blocked
-   * @param block
-   */
-  void setBlockRender(bool block);
-
-  /**
    * @brief Select the given filter
    * @param filter
    * @param selectionType

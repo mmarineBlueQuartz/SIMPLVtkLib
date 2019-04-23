@@ -125,9 +125,9 @@ void VSMainWidget2::connectSlots()
 void VSMainWidget2::renderAll()
 {
   QVector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
-  for(auto iter = viewWidgets.begin(); iter != viewWidgets.end(); iter++)
+  for(auto viewWidget : viewWidgets)
   {
-    VSVisualizationWidget* visualizationWidget = (*iter)->getVisualizationWidget();
+    VSVisualizationWidget* visualizationWidget = viewWidget->getVisualizationWidget();
     if(visualizationWidget)
     {
       // Render the VTK widget
@@ -245,12 +245,11 @@ void VSMainWidget2::listenFiltersChanged(VSAbstractFilter::FilterListType filter
 // -----------------------------------------------------------------------------
 void VSMainWidget2::listenFilterAdded(VSAbstractFilter* filter, bool currentFilter)
 {
+  updateOverlayButtons();
   if(dynamic_cast<VSPipelineFilter*>(filter) || dynamic_cast<VSFileNameFilter*>(filter))
   {
     m_Ui->visualizationFiltersOverlayBtn->setChecked(true);
   }
-  updateOverlayButtons();
-  renderAll();
 }
 
 // -----------------------------------------------------------------------------

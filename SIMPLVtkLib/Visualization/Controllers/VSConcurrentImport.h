@@ -124,7 +124,6 @@ public:
 
 signals:
   void importedFilter(VSAbstractFilter* filter, bool currentFilter = false);
-  void blockRender(bool block = true);
   void applyingDataFilters(int count);
   void dataFilterApplied(int num);
   void finishedPartialWrapping();

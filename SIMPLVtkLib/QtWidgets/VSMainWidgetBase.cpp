@@ -89,14 +89,9 @@ void VSMainWidgetBase::connectSlots()
   // Signals from VSController should be on the main thread, so Qt5 connections should be safe
   connect(m_Controller, &VSController::filterAdded, this, &VSMainWidgetBase::filterAdded);
   connect(m_Controller, &VSController::filterRemoved, this, &VSMainWidgetBase::filterRemoved);
-  connect(m_Controller, &VSController::blockRender, this, &VSMainWidgetBase::setBlockRender);
-  //<<<<<<< HEAD
-
-  // connect(this, &VSMainWidgetBase::proxyFromFilePathGenerated, this, &VSMainWidgetBase::launchSIMPLSelectionDialog);
-  //=======
+  
   connect(m_Controller, &VSController::importDataQueueStarted, this, &VSMainWidgetBase::importDataQueueStarted);
   connect(m_Controller, &VSController::importDataQueueFinished, this, &VSMainWidgetBase::importDataQueueFinished);
-  //>>>>>>> develop-BQ
 }
 
 // -----------------------------------------------------------------------------
@@ -1063,16 +1058,5 @@ void VSMainWidgetBase::renderAllViews()
   for(VSAbstractViewWidget* viewWidget : getAllViewWidgets())
   {
     viewWidget->renderView();
-  }
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
-void VSMainWidgetBase::setBlockRender(bool block)
-{
-  for(VSAbstractViewWidget* viewWidget : getAllViewWidgets())
-  {
-    viewWidget->setBlockRender(block);
   }
 }

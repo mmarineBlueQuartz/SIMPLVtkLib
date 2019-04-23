@@ -289,7 +289,7 @@ VSFilterViewSettings* VSFilterViewModel::createFilterViewSettings(VSAbstractFilt
     return m_FilterViewSettings[filter];
   }
 
-  VSFilterViewSettings* viewSettings = new VSFilterViewSettings(filter);
+  VSFilterViewSettings* viewSettings;
   if(m_DisplayType == AbstractImportMontageDialog::DisplayType::NotSpecified)
   {
     viewSettings = new VSFilterViewSettings(filter);
