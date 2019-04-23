@@ -763,18 +763,47 @@ VTK_PTR(vtkDataSet) SIMPLVtkBridge::WrapGeometry(VertexGeom::Pointer geom)
   return dataSet;
 }
 
+// std::tuples "arrays" are inconvenient to access by index and cannot do so through variables (i.e. for loops).
+// These are a few quick parsers to make that job simpler and easier to read.
+using FloatVec3 = std::array<float, 3>;
+FloatVec3 toArray(SIMPL::Tuple3FVec tuple)
+{
+  FloatVec3 arr;
+  arr[0] = std::get<0>(tuple);
+  arr[1] = std::get<1>(tuple);
+  arr[2] = std::get<2>(tuple);
+  return arr;
+}
+
+using SizeVec3 = std::array<size_t, 3>;
+SizeVec3 toArray(SIMPL::Tuple3SVec tuple)
+{
+  SizeVec3 arr;
+  arr[0] = std::get<0>(tuple);
+  arr[1] = std::get<1>(tuple);
+  arr[2] = std::get<2>(tuple);
+  return arr;
+}
+
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
 VTK_PTR(vtkDataSet) SIMPLVtkBridge::WrapGeometry(ImageGeom::Pointer image)
 {
-  std::tuple<size_t, size_t, size_t> dims = image->getDimensions();
-  SIMPL::Tuple3FVec res = image->getSpacing();
+  SizeVec3 dims = toArray(image->getDimensions());
+  FloatVec3 spacing = toArray(image->getSpacing());
+
+  double extent[6];
+  for(size_t i = 0; i < 3; i++)
+  {
+    extent[i * 2] = 0.0;
+    extent[i * 2 + 1] = dims[i] * spacing[i];
+  }
 
   VTK_NEW(vtkImageData, vtkImage);
-  vtkImage->SetExtent(0.0, std::get<0>(dims), 0.0, std::get<1>(dims), 0.0, std::get<2>(dims));
-  vtkImage->SetDimensions(std::get<0>(dims) + 1, std::get<1>(dims) + 1, std::get<2>(dims) + 1);
-  vtkImage->SetSpacing(std::get<0>(res), std::get<1>(res), std::get<2>(res));
+  vtkImage->SetExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
+  vtkImage->SetDimensions(dims[0] + 1, dims[1] + 1, dims[2] + 1);
+  vtkImage->SetSpacing(spacing[0], spacing[1], spacing[2]);
 
   return vtkImage;
 }
