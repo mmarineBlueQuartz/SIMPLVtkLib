@@ -78,7 +78,7 @@ VSConcurrentImport::VSConcurrentImport(VSController* controller)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSConcurrentImport::addDataContainerArray(FilterPipeline::Pointer pipeline, DataContainerArray::Pointer dca)
+void VSConcurrentImport::addDataContainerArray(const FilterPipeline::Pointer& pipeline, const DataContainerArray::Pointer& dca)
 {
   VSPipelineFilter* pipelineFilter = new VSPipelineFilter(pipeline);
   addDataContainerArray(pipelineFilter, dca);
@@ -87,7 +87,7 @@ void VSConcurrentImport::addDataContainerArray(FilterPipeline::Pointer pipeline,
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSConcurrentImport::addDataContainerArray(VSPipelineFilter* pipelineFilter, DataContainerArray::Pointer dca)
+void VSConcurrentImport::addDataContainerArray(VSPipelineFilter* pipelineFilter, const DataContainerArray::Pointer& dca)
 {
   addDataContainerArray(std::make_pair(pipelineFilter, dca));
 }
@@ -95,7 +95,7 @@ void VSConcurrentImport::addDataContainerArray(VSPipelineFilter* pipelineFilter,
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSConcurrentImport::addDataContainerArray(QString filePath, DataContainerArray::Pointer dca)
+void VSConcurrentImport::addDataContainerArray(const QString& filePath, const DataContainerArray::Pointer& dca)
 {
   VSFileNameFilter* fileFilter = new VSFileNameFilter(filePath);
   addDataContainerArray(fileFilter, dca);
@@ -104,7 +104,7 @@ void VSConcurrentImport::addDataContainerArray(QString filePath, DataContainerAr
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSConcurrentImport::addDataContainerArray(VSFileNameFilter* fileFilter, DataContainerArray::Pointer dca)
+void VSConcurrentImport::addDataContainerArray(VSFileNameFilter* fileFilter, const DataContainerArray::Pointer& dca)
 {
   addDataContainerArray(std::make_pair(fileFilter, dca));
 }

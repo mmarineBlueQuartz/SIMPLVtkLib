@@ -1227,7 +1227,7 @@ bool VSFilterViewSettings::isFlatImage()
 
   // Check dimensions
   int* dims = imageData->GetDimensions();
-  for(int i = 0; i < 3; i++)
+  for(size_t i = 0; i < 3; i++)
   {
     if(dims[i] <= 1)
     {
