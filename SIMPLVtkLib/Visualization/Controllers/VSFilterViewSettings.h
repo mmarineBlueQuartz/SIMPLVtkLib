@@ -49,7 +49,6 @@
 #include <vtkCubeAxesActor.h>
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkOutlineFilter.h>
-#include <vtkPlaneSource.h>
 #include <vtkScalarBarActor.h>
 #include <vtkScalarBarWidget.h>
 #include <vtkTexture.h>
@@ -61,6 +60,7 @@
 #include "SIMPLVtkLib/SIMPLVtkLib.h"
 
 class vtkDataSetMapper;
+class vtkPlaneSource;
 class vtkImageSliceMapper;
 class vtkImageSlice;
 
@@ -871,6 +871,14 @@ protected:
    * @brief Creates a vtkDataSetMapper and vtkActor for displaying generic vtkDataSets
    */
   void setupDataSetActors();
+
+  /**
+   * @brief Creates and returns a vtkPlaneSource for the given vtkDataSet.
+   * Returns nullptr if the dataset is not a flat image geometry.
+   * @param dataSet
+   * @return
+   */
+  VTK_PTR(vtkPlaneSource) createPlaneSource(vtkDataSet* dataSet);
 
   /**
    * @brief Creates a vtkAxisActor for displaying the axis grid

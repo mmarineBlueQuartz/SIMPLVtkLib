@@ -1314,7 +1314,7 @@ void VSFilterViewSettings::setupDataSetActors()
 {
   RenderBlocker renderBlocker(this);
   VTK_PTR(vtkDataSet) outputData = m_Filter->getOutput();
-  VTK_PTR(vtkPlaneSource) plane = VTK_PTR(vtkPlaneSource)::New();
+  m_Plane = createPlaneSource(outputData.Get());
 
   vtkDataSetMapper* mapper;
   vtkActor* actor;
@@ -1368,7 +1368,7 @@ void VSFilterViewSettings::setupDataSetActors()
   else
   {
     // mapper->SetInputConnection(m_DataSetFilter->GetOutputPort());
-    mapper->SetInputConnection(plane->GetOutputPort());
+    mapper->SetInputConnection(m_Plane->GetOutputPort());
   }
   actor->SetMapper(mapper);
 
@@ -1412,32 +1412,44 @@ void VSFilterViewSettings::setupDataSetActors()
 
   m_Mapper = mapper;
   m_Actor = actor;
-  m_Plane = plane;
 
   m_ActorType = ActorType::DataSet;
-  if(isFlatImage())
-  {
-    vtkImageData* imageData = dynamic_cast<vtkImageData*>(outputData.Get());
-
-    int extent[6];
-    double origin[3];
-    double point1[3];
-    double point2[3];
-    imageData->GetExtent(extent);
-    imageData->GetOrigin(origin);
-    for(size_t i = 0; i < 3; i++)
-    {
-      point1[i] = origin[i] + extent[i * 2];
-      point2[i] = origin[i] + extent[i * 2 + 1];
-    }
-
-    plane->SetOrigin(origin);
-    plane->SetPoint1(point1);
-    plane->SetPoint2(point2);
-    plane->Update();
-  }
   updateTransform();
 }
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+VTK_PTR(vtkPlaneSource) VSFilterViewSettings::createPlaneSource(vtkDataSet* dataSet)
+{
+  if(!isFlatImage())
+  {
+    return nullptr;
+  }
+
+  VTK_PTR(vtkPlaneSource) plane = VTK_PTR(vtkPlaneSource)::New();
+  vtkImageData* imageData = dynamic_cast<vtkImageData*>(dataSet);
+
+  double bounds[6];
+  double origin[3];
+  double point1[3];
+  double point2[3];
+  imageData->GetBounds(bounds);
+  imageData->GetOrigin(origin);
+  for(size_t i = 0; i < 3; i++)
+  {
+    point1[i] = bounds[i * 2] - origin[i];
+    point2[i] = bounds[i * 2 + 1] - origin[i];
+  }
+  updateTransform();
+
+  plane->SetOrigin(origin);
+  plane->SetPoint1(point1);
+  plane->SetPoint2(point2);
+  plane->Update();
+  return plane;
+}
+
 
 // -----------------------------------------------------------------------------
 //
