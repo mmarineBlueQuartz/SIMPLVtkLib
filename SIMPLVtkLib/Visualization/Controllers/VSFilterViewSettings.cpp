@@ -807,7 +807,6 @@ void VSFilterViewSettings::setActiveArrayName(const QString& name)
 
     emit activeArrayNameChanged(m_ActiveArrayName);
     emit componentNamesChanged();
-    attemptToRender();
 
     updateScalarBarVisibility();
     updateTexture();
@@ -1200,7 +1199,6 @@ void VSFilterViewSettings::setupActors(bool outline)
   {
     setRepresentation(Representation::Outline);
   }
-  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1777,8 +1775,6 @@ void VSFilterViewSettings::setRepresentation(const Representation& type)
   updateTransform();
   updateScalarBarVisibility();
   emit representationChanged(type);
-
-  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -1867,8 +1863,6 @@ void VSFilterViewSettings::copySettings(VSFilterViewSettings* copy)
   {
     m_LookupTable->copy(*(copy->m_LookupTable));
   }
-
-  attemptToRender();
 }
 
 // -----------------------------------------------------------------------------
