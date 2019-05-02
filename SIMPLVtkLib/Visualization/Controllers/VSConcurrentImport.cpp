@@ -214,11 +214,11 @@ void VSConcurrentImport::partialWrappingThreadFinished()
         ImageGeom::Pointer imageGeom = dataContainer->getGeometryAs<ImageGeom>();
         if(nullptr != imageGeom)
         {
-          SIMPL::Tuple3FVec originTuple = imageGeom->getOrigin();
+          FloatVec3Type originVec = imageGeom->getOrigin();
           double origin[3];
-          origin[0] = std::get<0>(originTuple);
-          origin[1] = std::get<1>(originTuple);
-          origin[2] = std::get<2>(originTuple);
+          origin[0] = originVec[0];
+          origin[1] = originVec[1];
+          origin[2] = originVec[2];
 
           filter->getTransform()->setLocalPosition(origin);
         }
