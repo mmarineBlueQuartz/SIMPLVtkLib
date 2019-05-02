@@ -891,6 +891,8 @@ void VSFilterViewSettings::setActiveComponentIndex(int index)
     m_ScalarBarActor->SetTitle(dataArray->GetComponentName(index));
   }
 
+  m_Mapper->Update();
+  emit requiresRender();
   emit activeComponentIndexChanged(m_ActiveComponent);
 }
 
@@ -1355,13 +1357,13 @@ void VSFilterViewSettings::setupDataSetActors()
 
   updateTexture();
 
-  if(!isFlatImage())
-  {
-    mapper->SetInputConnection(m_DataSetFilter->GetOutputPort());
-  }
-  else if(getRepresentation() == Representation::Outline)
+  if(getRepresentation() == Representation::Outline)
   {
     mapper->SetInputConnection(m_OutlineFilter->GetOutputPort());
+  }
+  else if(!isFlatImage())
+  {
+    mapper->SetInputConnection(m_DataSetFilter->GetOutputPort());
   }
   else
   {
@@ -1447,7 +1449,6 @@ VTK_PTR(vtkPlaneSource) VSFilterViewSettings::createPlaneSource(vtkDataSet* data
   plane->Update();
   return plane;
 }
-
 
 // -----------------------------------------------------------------------------
 //
@@ -2707,6 +2708,11 @@ void VSFilterViewSettings::updateTexture()
 {
   if(!isFlatImage())
   {
+    // Remove textures
+    if(getDataSetActor())
+    {
+      getDataSetActor()->GetProperty()->RemoveAllTextures();
+    }
     return;
   }
   VTK_PTR(vtkDataSet) outputData = m_Filter->getOutput();
@@ -2757,9 +2763,14 @@ void VSFilterViewSettings::inputUpdated(VSAbstractFilter* filter)
   if(filter->getOutput() != nullptr)
   {
     VTK_PTR(vtkCellData) cellData = filter->getOutput()->GetCellData();
+    VTK_PTR(vtkPointData) pointData = filter->getOutput()->GetPointData();
     if(cellData)
     {
       setActiveArrayName(cellData->GetArrayName(0));
+    }
+    else if(pointData)
+    {
+      setActiveArrayName(pointData->GetArrayName(0));
     }
   }
   updateTexture();
