@@ -443,7 +443,7 @@ void VSAbstractViewWidget::setFilterArrayName(const QString& name)
 void VSAbstractViewWidget::setFilterComponentIndex(const int& index)
 {
   VSFilterViewSettings* viewSettings = dynamic_cast<VSFilterViewSettings*>(sender());
-  if(viewSettings /*&& !viewSettings->isRenderingBlocked()*/)
+  if(viewSettings && !viewSettings->isRenderingBlocked())
   {
     renderView();
   }
@@ -455,7 +455,7 @@ void VSAbstractViewWidget::setFilterComponentIndex(const int& index)
 void VSAbstractViewWidget::setFilterMapColors(const VSFilterViewSettings::ColorMapping& mapColorState)
 {
   VSFilterViewSettings* viewSettings = dynamic_cast<VSFilterViewSettings*>(sender());
-  if(viewSettings /*&& !viewSettings->isRenderingBlocked()*/)
+  if(viewSettings && !viewSettings->isRenderingBlocked())
   {
     renderView();
   }
