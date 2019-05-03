@@ -1524,7 +1524,7 @@ void VSFilterViewSettings::connectFilter(VSAbstractFilter* filter)
   if(m_Filter)
   {
     disconnect(m_Filter, SIGNAL(updatedOutputPort(VSAbstractFilter*)), this, SLOT(updateInputPort(VSAbstractFilter*)));
-    disconnect(m_Filter, SIGNAL(transformChanged()), this, SIGNAL(updateTransform()));
+    disconnect(m_Filter, SIGNAL(transformChanged()), this, SLOT(updateTransform()));
     disconnect(m_Filter, &VSAbstractFilter::removeFilter, this, &VSFilterViewSettings::filterDeleted);
     disconnect(m_Filter, &VSAbstractFilter::arrayNamesChanged, this, &VSFilterViewSettings::arrayNamesChanged);
     disconnect(m_Filter, &VSAbstractFilter::scalarNamesChanged, this, &VSFilterViewSettings::scalarNamesChanged);
