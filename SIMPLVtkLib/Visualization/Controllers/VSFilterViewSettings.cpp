@@ -2764,14 +2764,18 @@ void VSFilterViewSettings::inputUpdated(VSAbstractFilter* filter)
   {
     VTK_PTR(vtkCellData) cellData = filter->getOutput()->GetCellData();
     VTK_PTR(vtkPointData) pointData = filter->getOutput()->GetPointData();
-    if(cellData)
+    if(cellData && cellData->GetNumberOfArrays() > 0)
     {
       setActiveArrayName(cellData->GetArrayName(0));
     }
-    else if(pointData)
+    else if(pointData && pointData->GetNumberOfArrays())
     {
       setActiveArrayName(pointData->GetArrayName(0));
     }
+	else
+	{
+      setActiveArrayName(QString::Null());
+	}
   }
   updateTexture();
 }
