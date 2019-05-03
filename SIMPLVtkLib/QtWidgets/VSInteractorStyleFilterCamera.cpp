@@ -262,10 +262,7 @@ void VSInteractorStyleFilterCamera::OnKeyDown()
   {
     if(m_ActionType != ActionType::None)
     {
-      if(!m_CustomTransform)
-      {
-        m_CustomTransform = true;
-      }
+      m_CustomTransform = true;
       m_CustomTransformAmount.append(keyDown.at(0));
     }
   }
@@ -307,10 +304,7 @@ void VSInteractorStyleFilterCamera::OnKeyDown()
   }
   else if(keyDown == "Up" || keyDown == "Down")
   {
-    if(!m_CustomTransform)
-    {
-      m_CustomTransform = true;
-    }
+    m_CustomTransform = true;
     QString previousCustomTransformAmount = m_CustomTransformAmount;
     m_CustomTransformAmount.clear();
     if(m_ActiveFilter && ActionType::None != m_ActionType)
@@ -374,10 +368,7 @@ void VSInteractorStyleFilterCamera::OnKeyDown()
   }
   else if(keyDown == "Left" || keyDown == "Right")
   {
-    if(!m_CustomTransform)
-    {
-      m_CustomTransform = true;
-    }
+    m_CustomTransform = true;
     QString previousCustomTransformAmount = m_CustomTransformAmount;
     m_CustomTransformAmount.clear();
     if(m_ActiveFilter && ActionType::None != m_ActionType)
@@ -740,14 +731,14 @@ void VSInteractorStyleFilterCamera::translateFilter()
   VSTransform* transform = m_ActiveFilter->getTransform();
   double* globalPosition = transform->getPosition();
   double localDelta[3];
-  for(int i = 0; i < 3; i++)
+  for(size_t i = 0; i < 3; i++)
   {
     localDelta[i] = deltaPosition[i] + globalPosition[i];
   }
   delete[] globalPosition;
 
   transform->localizePoint(localDelta);
-  for(int i = 0; i < 3; i++)
+  for(size_t i = 0; i < 3; i++)
   {
     m_Translation[i] += localDelta[i];
   }
@@ -814,7 +805,7 @@ void VSInteractorStyleFilterCamera::beginTranslation()
 // -----------------------------------------------------------------------------
 void VSInteractorStyleFilterCamera::cancelTranslation()
 {
-  for(int i = 0; i < 3; i++)
+  for(size_t i = 0; i < 3; i++)
   {
     m_Translation[i] *= -1;
   }
@@ -844,7 +835,7 @@ void VSInteractorStyleFilterCamera::rotateFilter()
   int* currentMousePos = iren->GetEventPosition();
   int* prevMousePos = iren->GetLastEventPosition();
   double currentDelta[2];
-  for(int i = 0; i < 2; i++)
+  for(size_t i = 0; i < 2; i++)
   {
     currentDelta[i] = currentMousePos[i] - prevMousePos[i];
   }
@@ -948,7 +939,7 @@ void VSInteractorStyleFilterCamera::scaleFilter()
 
   int* currentMousePos = iren->GetEventPosition();
   double currentDelta[2];
-  for(int i = 0; i < 2; i++)
+  for(size_t i = 0; i < 2; i++)
   {
     currentDelta[i] = currentMousePos[i] - disp_obj_center[i];
   }
@@ -1027,7 +1018,7 @@ void VSInteractorStyleFilterCamera::beginScaling()
 
     int* currentMousePos = iren->GetEventPosition();
     double currentDelta[2];
-    for(int i = 0; i < 2; i++)
+    for(size_t i = 0; i < 2; i++)
     {
       currentDelta[i] = currentMousePos[i] - disp_obj_center[i];
     }
@@ -1187,6 +1178,7 @@ void VSInteractorStyleFilterCamera::updateTransformText()
     transformText.append("Scaling");
     break;
   case ActionType::ResetTransform:
+    break;
   case ActionType::None:
     break;
   }
