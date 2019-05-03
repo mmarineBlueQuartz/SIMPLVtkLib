@@ -172,9 +172,9 @@ VSAbstractViewWidget* VSMainWidgetBase::getActiveViewWidget()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-QVector<VSAbstractViewWidget*> VSMainWidgetBase::getAllViewWidgets()
+std::vector<VSAbstractViewWidget*> VSMainWidgetBase::getAllViewWidgets()
 {
-  return this->findChildren<VSAbstractViewWidget*>().toVector();
+  return this->findChildren<VSAbstractViewWidget*>().toVector().toStdVector();
 }
 
 // -----------------------------------------------------------------------------
@@ -720,7 +720,7 @@ void VSMainWidgetBase::deleteFilter(VSAbstractFilter* filter)
     return;
   }
 
-  QVector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
+  std::vector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
   for(VSAbstractViewWidget* widget : viewWidgets)
   {
     VSFilterViewSettings* viewSettings = widget->getFilterViewSettings(filter);

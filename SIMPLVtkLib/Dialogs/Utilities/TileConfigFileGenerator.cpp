@@ -117,9 +117,8 @@ void TileConfigFileGenerator::buildTileConfigFile() const
   float image_width = 100.0;
   float image_height = 100.0;
   bool image_dimensions_determined = false;
-  for(QVector<QString>::iterator filepath = fileList.begin(); filepath != fileList.end(); ++filepath)
+  for(const QString& imageFName : fileList)
   {
-    QString imageFName = *filepath;
     QFileInfo fi(imageFName);
     if(fi.exists())
     {

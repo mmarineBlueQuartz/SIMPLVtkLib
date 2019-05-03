@@ -300,9 +300,8 @@ void FijiListWidget::generateExampleInputFile(QStringList filenameList)
   QIcon greenDot = QIcon(QString(":/SIMPL/icons/images/bullet_ball_green.png"));
   QIcon redDot = QIcon(QString(":/SIMPL/icons/images/bullet_ball_red.png"));
   int fileExistsCount = 0;
-  for(QVector<QString>::size_type i = 0; i < filenameList.size(); ++i)
+  for(const QString& filePath : filenameList)
   {
-    QString filePath(fileList.at(i));
     QFileInfo fi(filePath);
     QListWidgetItem* item = new QListWidgetItem(filePath, m_Ui->fileListView);
     if(fi.exists())

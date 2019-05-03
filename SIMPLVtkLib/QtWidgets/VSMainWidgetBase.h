@@ -89,7 +89,7 @@ public:
    * @brief Returns a vector of all view widgets contained in the main widget
    * @return
    */
-  QVector<VSAbstractViewWidget*> getAllViewWidgets();
+  std::vector<VSAbstractViewWidget*> getAllViewWidgets();
 
   /**
    * @brief Returns the VSFilterView used by the main widget. Returns nullptr if none is used

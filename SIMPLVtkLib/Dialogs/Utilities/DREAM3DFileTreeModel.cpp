@@ -83,30 +83,20 @@ QVariant DREAM3DFileTreeModel::data(const QModelIndex& index, int role) const
   }
 
   DREAM3DFileItem* item = getItem(index);
-
-  if(role == Qt::DisplayRole)
+  
+  switch(role)
   {
+  case Qt::DisplayRole:
     return item->data(index.column());
-  }
-  else if(role == Qt::CheckStateRole)
-  {
+  case Qt::CheckStateRole:
     return item->getCheckState();
-  }
-  else if(role == Qt::BackgroundRole)
-  {
+  case Qt::BackgroundRole:
     return QVariant();
-  }
-  else if(role == Qt::ForegroundRole)
-  {
+  case Qt::ForegroundRole:
     return QColor(Qt::black);
-  }
-  else if(role == Qt::ToolTipRole)
-  {
+  case Qt::ToolTipRole:
     return QVariant();
-  }
-  else if(role == Qt::FontRole)
-  {
-    DREAM3DFileItem* item = getItem(index);
+  case Qt::FontRole:
     if(item->getItemType() == DREAM3DFileItem::ItemType::DataContainer)
     {
       QFont font;
@@ -117,13 +107,11 @@ QVariant DREAM3DFileTreeModel::data(const QModelIndex& index, int role) const
     {
       return QVariant();
     }
-  }
-  else if(role == Qt::DecorationRole)
+  case Qt::DecorationRole:
   {
     QModelIndex nameIndex = this->index(index.row(), DREAM3DFileItem::Name, index.parent());
     if(nameIndex == index)
     {
-      DREAM3DFileItem* item = getItem(index);
       return item->getIcon();
     }
     else
@@ -131,8 +119,9 @@ QVariant DREAM3DFileTreeModel::data(const QModelIndex& index, int role) const
       return QVariant();
     }
   }
-
-  return QVariant();
+  default:
+    return QVariant();
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -146,20 +135,17 @@ Qt::ItemFlags DREAM3DFileTreeModel::flags(const QModelIndex& index) const
   }
 
   DREAM3DFileItem* item = getItem(index);
-  if(item->getItemType() == DREAM3DFileItem::ItemType::DataContainer)
+  switch(item->getItemType())
   {
+  case DREAM3DFileItem::ItemType::DataContainer:
     return (Qt::ItemIsEnabled | Qt::ItemIsUserCheckable);
-  }
-  else if(item->getItemType() == DREAM3DFileItem::ItemType::AttributeMatrix)
-  {
+  case DREAM3DFileItem::ItemType::AttributeMatrix:
     return (0);
-  }
-  else if(item->getItemType() == DREAM3DFileItem::ItemType::DataArray)
-  {
+  case DREAM3DFileItem::ItemType::DataArray:
     return (Qt::ItemNeverHasChildren);
+  default:
+    return QAbstractItemModel::flags(index);
   }
-
-  return QAbstractItemModel::flags(index);
 }
 
 // -----------------------------------------------------------------------------

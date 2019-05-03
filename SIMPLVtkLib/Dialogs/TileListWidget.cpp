@@ -415,9 +415,8 @@ void TileListWidget::generateExampleInputFile()
   m_Ui->fileListView->clear();
   QIcon greenDot = QIcon(QString(":/SIMPL/icons/images/bullet_ball_green.png"));
   QIcon redDot = QIcon(QString(":/SIMPL/icons/images/bullet_ball_red.png"));
-  for(QVector<QString>::size_type i = 0; i < fileList.size(); ++i)
+  for(const QString& filePath : fileList)
   {
-    QString filePath(fileList.at(i));
     QFileInfo fi(filePath);
     QListWidgetItem* item = new QListWidgetItem(filePath, m_Ui->fileListView);
     if(fi.exists())

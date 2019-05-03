@@ -124,8 +124,8 @@ void VSMainWidget2::connectSlots()
 // -----------------------------------------------------------------------------
 void VSMainWidget2::renderAll()
 {
-  QVector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
-  for(auto viewWidget : viewWidgets)
+  std::vector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
+  for(VSAbstractViewWidget* viewWidget : viewWidgets)
   {
     VSVisualizationWidget* visualizationWidget = viewWidget->getVisualizationWidget();
     if(visualizationWidget)
@@ -141,7 +141,7 @@ void VSMainWidget2::renderAll()
 // -----------------------------------------------------------------------------
 void VSMainWidget2::resetCamera()
 {
-  QVector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
+  std::vector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
   for(VSAbstractViewWidget* viewWidget : viewWidgets)
   {
     viewWidget->resetCamera();

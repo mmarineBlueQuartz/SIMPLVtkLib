@@ -103,10 +103,10 @@ void VSMainWidget::connectSlots()
 // -----------------------------------------------------------------------------
 void VSMainWidget::renderAll()
 {
-  QVector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
-  for(auto iter = viewWidgets.begin(); iter != viewWidgets.end(); iter++)
+  std::vector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
+  for(VSAbstractViewWidget* viewWidget : viewWidgets)
   {
-    VSVisualizationWidget* visualizationWidget = (*iter)->getVisualizationWidget();
+    VSVisualizationWidget* visualizationWidget = viewWidget->getVisualizationWidget();
     if(visualizationWidget)
     {
       // Render the VTK widget
@@ -120,7 +120,7 @@ void VSMainWidget::renderAll()
 // -----------------------------------------------------------------------------
 void VSMainWidget::resetCamera()
 {
-  QVector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
+  std::vector<VSAbstractViewWidget*> viewWidgets = getAllViewWidgets();
   for(VSAbstractViewWidget* viewWidget : viewWidgets)
   {
     viewWidget->resetCamera();
