@@ -37,7 +37,6 @@
 
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSFileNameValues.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSTextFilter.h"
-#include "SIMPLVtkLib/Visualization/VisualFilters/VSFileNameValues.h"
 
 /**
  * @class VSFileNameFilter VSFileNameFilter.h

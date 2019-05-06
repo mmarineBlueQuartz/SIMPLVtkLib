@@ -61,7 +61,7 @@ public:
 
 protected:
   VSMontageImporter(FilterPipeline::Pointer pipeline);
-  VSMontageImporter(FilterPipeline::Pointer pipeline,	DataContainerArray::Pointer dataContainerArray);
+  VSMontageImporter(FilterPipeline::Pointer pipeline, DataContainerArray::Pointer dataContainerArray);
 
 protected slots:
   /**

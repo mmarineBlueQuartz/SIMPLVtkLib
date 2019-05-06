@@ -397,10 +397,10 @@ QString ImportDREAM3DMontageDialog::getDataArrayName()
 // -----------------------------------------------------------------------------
 void ImportDREAM3DMontageDialog::changeOrigin_stateChanged(int state)
 {
-  //m_Ui->originX->setEnabled(state);
-  //m_Ui->originY->setEnabled(state);
-  //m_Ui->originZ->setEnabled(state);
-  //if(state == false)
+  // m_Ui->originX->setEnabled(state);
+  // m_Ui->originY->setEnabled(state);
+  // m_Ui->originZ->setEnabled(state);
+  // if(state == false)
   //{
   //  m_Ui->originX->setText("0");
   //  m_Ui->originY->setText("0");
@@ -415,10 +415,10 @@ void ImportDREAM3DMontageDialog::changeOrigin_stateChanged(int state)
 // -----------------------------------------------------------------------------
 void ImportDREAM3DMontageDialog::changeSpacing_stateChanged(int state)
 {
-  //m_Ui->spacingX->setEnabled(state);
-  //m_Ui->spacingY->setEnabled(state);
-  //m_Ui->spacingZ->setEnabled(state);
-  //if(state == false)
+  // m_Ui->spacingX->setEnabled(state);
+  // m_Ui->spacingY->setEnabled(state);
+  // m_Ui->spacingZ->setEnabled(state);
+  // if(state == false)
   //{
   //  m_Ui->spacingX->setText("1");
   //  m_Ui->spacingY->setText("1");

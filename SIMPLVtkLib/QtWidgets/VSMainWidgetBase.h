@@ -151,7 +151,7 @@ public:
    * @brief Sets the VSDatasetInfoWidget
    * @param widget
    */
-   void setDatasetInfoWidget(VSDatasetInfoWidget* widget);
+  void setDatasetInfoWidget(VSDatasetInfoWidget* widget);
 
   /**
    * @brief Sets the VSFilterSettingsWidget

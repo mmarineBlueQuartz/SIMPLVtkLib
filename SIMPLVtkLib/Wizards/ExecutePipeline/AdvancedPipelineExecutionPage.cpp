@@ -36,7 +36,6 @@
 #include "AdvancedPipelineExecutionPage.h"
 
 #include <QtCore/QDir>
-#include <QtCore/QMimeDatabase>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QJsonDocument>

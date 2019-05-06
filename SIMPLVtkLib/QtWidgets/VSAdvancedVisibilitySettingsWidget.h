@@ -44,7 +44,7 @@
 
 namespace Ui
 {
-  class VSAdvancedVisibilitySettingsWidget;
+class VSAdvancedVisibilitySettingsWidget;
 }
 
 /**

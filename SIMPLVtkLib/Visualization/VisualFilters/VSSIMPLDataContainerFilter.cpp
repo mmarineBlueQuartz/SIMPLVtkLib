@@ -46,7 +46,6 @@
 #include <vtkImageData.h>
 #include <vtkPointSet.h>
 #include <vtkTransformFilter.h>
-#include <vtkExtractVOI.h>
 
 #include "SIMPLib/Geometry/ImageGeom.h"
 #include "SIMPLib/Utilities/SIMPLH5DataReader.h"
@@ -100,19 +99,19 @@ bool VSSIMPLDataContainerFilter::isFlatImage()
 {
   // Check dimensions
   SIMPLVtkBridge::WrappedDataContainerPtr wrappedDC = m_DCValues->getWrappedDataContainer();
-  if (nullptr == wrappedDC)
+  if(nullptr == wrappedDC)
   {
     return false;
   }
 
   DataContainer::Pointer dc = wrappedDC->m_DataContainer;
-  if (nullptr == dc)
+  if(nullptr == dc)
   {
     return false;
   }
 
   ImageGeom::Pointer imageGeom = dc->getGeometryAs<ImageGeom>();
-  if (nullptr == imageGeom)
+  if(nullptr == imageGeom)
   {
     return false;
   }
