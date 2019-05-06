@@ -39,6 +39,7 @@
 #pragma GCC diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
+#include <array>
 #include <string>
 
 #include <vtkDataArray.h>
@@ -321,7 +322,7 @@ protected:
    * @param tuplesReq
    * @param importList
    */
-  static bool WrapAttrMatrixData(AttributeMatrix::Pointer am, WrappedDataArrayPtrCollection& wrappedCollection, const int tuplesReq, DataArrayImportSettings importList);
+  static bool WrapAttrMatrixData(AttributeMatrix::Pointer am, WrappedDataArrayPtrCollection& wrappedCollection, int tuplesReq, DataArrayImportSettings importList);
 
   /**
    * @brief Returns true if the given IDataArray can be wrapped. Returns false otherwise.

@@ -66,7 +66,7 @@ public:
   /**
    * @brief Deconstructor
    */
-  virtual ~VSAbstractWidget() = default;
+  ~VSAbstractWidget() override = default;
 
   /**
    * @brief Copies the vtkWidget bounds

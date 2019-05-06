@@ -64,7 +64,7 @@ public:
     return new vtkBoxCallback();
   }
 
-  virtual void Execute(vtkObject* caller, unsigned long, void*)
+  void Execute(vtkObject* caller, unsigned long, void*) override
   {
     vtkBoxWidget2* boxWidget = reinterpret_cast<vtkBoxWidget2*>(caller);
     vtkBoxRepresentation* rep = reinterpret_cast<vtkBoxRepresentation*>(boxWidget->GetRepresentation());
@@ -109,10 +109,10 @@ public:
   }
 
 private:
-  vtkTransform* m_UseTransform;
-  vtkTransform* m_ViewTransform;
-  VSTransform* m_VSTransform;
-  VSBoxWidget* m_VSBoxWidget;
+  vtkTransform* m_UseTransform = nullptr;
+  vtkTransform* m_ViewTransform = nullptr;
+  VSTransform* m_VSTransform = nullptr;
+  VSBoxWidget* m_VSBoxWidget = nullptr;
 };
 
 // -----------------------------------------------------------------------------
@@ -341,7 +341,7 @@ void VSBoxWidget::readJson(QJsonObject& json)
 
   double useMatrix[16];
   double viewMatrix[16];
-  for(int i = 0; i < 16; i++)
+  for(size_t i = 0; i < 16; i++)
   {
     useMatrix[i] = useBoxTransformArray[i].toDouble();
     viewMatrix[i] = viewBoxTransformArray[i].toDouble();
@@ -360,7 +360,7 @@ void VSBoxWidget::writeJson(const QJsonObject& json)
     vtkMatrix4x4* matrix = m_UseTransform->GetMatrix();
     double* matrixData = matrix->GetData();
     QJsonArray boxTransformData;
-    for(int i = 0; i < 16; i++)
+    for(size_t i = 0; i < 16; i++)
     {
       boxTransformData.append(matrixData[i]);
     }
@@ -372,7 +372,7 @@ void VSBoxWidget::writeJson(const QJsonObject& json)
     vtkMatrix4x4* matrix = m_ViewTransform->GetMatrix();
     double* matrixData = matrix->GetData();
     QJsonArray boxTransformData;
-    for(int i = 0; i < 16; i++)
+    for(size_t i = 0; i < 16; i++)
     {
       boxTransformData.append(matrixData[i]);
     }
@@ -519,7 +519,7 @@ bool VSBoxWidget::equals(double* translation, double* rotation, double* scale) c
   getRotation(currentRotation);
   getScale(currentScale);
 
-  for(int i = 0; i < 3; i++)
+  for(size_t i = 0; i < 3; i++)
   {
     if(translation[i] != currentTranslation[i] || rotation[i] != currentRotation[i] || scale[i] != currentScale[i])
     {
@@ -539,7 +539,7 @@ bool VSBoxWidget::equals(std::vector<double> translationVector, std::vector<doub
   double rotation[3];
   double scale[3];
 
-  for(int i = 0; i < 3; i++)
+  for(size_t i = 0; i < 3; i++)
   {
     translation[i] = translationVector[i];
     rotation[i] = rotationVector[i];

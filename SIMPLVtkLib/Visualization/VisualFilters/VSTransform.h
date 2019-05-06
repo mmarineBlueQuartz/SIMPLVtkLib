@@ -80,7 +80,7 @@ public:
   /**
    * @brief Deconstructor
    */
-  virtual ~VSTransform() = default;
+  ~VSTransform() override = default;
 
   /**
    * @brief Assignment operator

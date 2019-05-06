@@ -417,7 +417,7 @@ bool SIMPLVtkBridge::MergeWrappedArrays(WrappedDataArrayPtrCollection& oldWrappi
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-bool SIMPLVtkBridge::WrapAttrMatrixData(AttributeMatrix::Pointer attrMat, WrappedDataArrayPtrCollection& wrappedCollection, const int tuplesReq, DataArrayImportSettings importList)
+bool SIMPLVtkBridge::WrapAttrMatrixData(AttributeMatrix::Pointer attrMat, WrappedDataArrayPtrCollection& wrappedCollection, int tuplesReq, DataArrayImportSettings importList)
 {
   if(nullptr == attrMat)
   {

@@ -70,7 +70,7 @@ public:
   /**
    * @brief Deconstructor
    */
-  virtual ~VSBoxWidget();
+  ~VSBoxWidget() override;
 
   /**
    * @brief Sets the box's scale
@@ -228,7 +228,7 @@ protected slots:
   /**
    * @brief Updates the vtk widget for positioning in global space
    */
-  virtual void updateGlobalSpace() override;
+  void updateGlobalSpace() override;
 
 protected:
   /**
