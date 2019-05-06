@@ -163,26 +163,30 @@ void DisplayTypeSelectionPage::connectSignalsSlots()
     VSMainWidgetBase* baseWidget = dynamic_cast<VSMainWidgetBase*>(wizard()->parentWidget());
     if(baseWidget != nullptr)
     {
-      QString datasetName = m_Ui->datasetsListWidget->selectedItems().front()->text();
-      QString amName;
-      QString daName;
-      VSAbstractFilter::FilterListType datasets = baseWidget->getController()->getBaseFilters();
-      for(VSAbstractFilter* dataset : datasets)
+      QList<QListWidgetItem*> selectedItems = m_Ui->datasetsListWidget->selectedItems();
+      if(selectedItems.size() > 0)
       {
-        if(datasetName == dataset->getFilterName())
+        QString datasetName = selectedItems.front()->text();
+        QString amName;
+        QString daName;
+        VSAbstractFilter::FilterListType datasets = baseWidget->getController()->getBaseFilters();
+        for(VSAbstractFilter* dataset : datasets)
         {
-          VSAbstractFilter* childFilter = dataset->getChildren().front();
-          VSSIMPLDataContainerFilter* dcFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(childFilter);
-          if(dcFilter != nullptr)
+          if(datasetName == dataset->getFilterName())
           {
-            DataContainer::Pointer dataContainer = dcFilter->getWrappedDataContainer()->m_DataContainer;
-            AttributeMatrix::Pointer am = dataContainer->getAttributeMatrices()[0];
-            amName = am->getName();
-            daName = am->getAttributeArrayNames().first();
-            m_Ui->cellAttrMatrixNameLE->setText(amName);
-            m_Ui->imageArrayNameLE->setText(daName);
+            VSAbstractFilter* childFilter = dataset->getChildren().front();
+            VSSIMPLDataContainerFilter* dcFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(childFilter);
+            if(dcFilter != nullptr)
+            {
+              DataContainer::Pointer dataContainer = dcFilter->getWrappedDataContainer()->m_DataContainer;
+              AttributeMatrix::Pointer am = dataContainer->getAttributeMatrices()[0];
+              amName = am->getName();
+              daName = am->getAttributeArrayNames().first();
+              m_Ui->cellAttrMatrixNameLE->setText(amName);
+              m_Ui->imageArrayNameLE->setText(daName);
+            }
+            break;
           }
-          break;
         }
       }
     }

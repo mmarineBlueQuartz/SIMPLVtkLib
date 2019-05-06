@@ -48,7 +48,6 @@
 // -----------------------------------------------------------------------------
 namespace ExecutePipeline
 {
-
 namespace FieldNames
 {
 const QString PipelineFile("PipelineFile");

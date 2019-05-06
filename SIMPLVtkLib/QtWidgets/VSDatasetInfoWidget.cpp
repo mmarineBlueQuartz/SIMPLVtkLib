@@ -33,18 +33,18 @@
  *
  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-#include "VSAdvancedVisibilitySettingsWidget.h"
+#include "VSDatasetInfoWidget.h"
+
+#include <vtkImageData.h>
 
 #include <QtGui/QIntValidator>
-
-#include "ui_VSAdvancedVisibilitySettingsWidget.h"
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-VSAdvancedVisibilitySettingsWidget::VSAdvancedVisibilitySettingsWidget(QWidget* parent)
+VSDatasetInfoWidget::VSDatasetInfoWidget(QWidget* parent)
 : QWidget(parent)
-, m_Ui(new Ui::VSAdvancedVisibilitySettingsWidget)
+, m_Ui(new Ui::VSDatasetInfoWidget)
 {
   m_Ui->setupUi(this);
   setupGui();
@@ -54,27 +54,14 @@ VSAdvancedVisibilitySettingsWidget::VSAdvancedVisibilitySettingsWidget(QWidget* 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::setupGui()
+void VSDatasetInfoWidget::setupGui()
 {
-  QIntValidator* pointSizeValidator = new QIntValidator(this);
-  pointSizeValidator->setBottom(1);
-  m_Ui->pointSizeEdit->setValidator(pointSizeValidator);
-
-  // Hide Axes Grid and Annotations label and line
-  m_Ui->viewAxesGridCheckBox->setVisible(false);
-  m_Ui->annotationLabel->setVisible(false);
-  m_Ui->line_2->setVisible(false);
-  m_Ui->annotationWidget->setVisible(false);
-
-  connect(m_Ui->pointSizeEdit, &QLineEdit::textChanged, this, &VSAdvancedVisibilitySettingsWidget::updatePointSize);
-  connect(m_Ui->pointSphereCheckBox, &QCheckBox::stateChanged, this, &VSAdvancedVisibilitySettingsWidget::updateRenderPointSpheres);
-  connect(m_Ui->viewAxesGridCheckBox, &QCheckBox::stateChanged, this, &VSAdvancedVisibilitySettingsWidget::setAxesGridVisible);
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::setFilters(VSAbstractFilter::FilterListType filters)
+void VSDatasetInfoWidget::setFilters(VSAbstractFilter::FilterListType filters)
 {
   m_Filters = filters;
 
@@ -89,36 +76,37 @@ void VSAdvancedVisibilitySettingsWidget::setFilters(VSAbstractFilter::FilterList
   }
 
   updateViewSettingInfo();
+  updateDatasetInfo();
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::connectFilterViewSettings(VSFilterViewSettings::Collection settings)
+void VSDatasetInfoWidget::connectFilterViewSettings(VSFilterViewSettings::Collection settings)
 {
   for(VSFilterViewSettings* setting : m_ViewSettings)
   {
-    disconnect(setting, &VSFilterViewSettings::pointRenderingChanged, this, &VSAdvancedVisibilitySettingsWidget::updatePointSettingVisibility);
-    disconnect(setting, &VSFilterViewSettings::pointSizeChanged, this, &VSAdvancedVisibilitySettingsWidget::listenPointSize);
-    disconnect(setting, &VSFilterViewSettings::renderPointSpheresChanged, this, &VSAdvancedVisibilitySettingsWidget::listenPointSphere);
-    disconnect(setting, &VSFilterViewSettings::gridVisibilityChanged, this, &VSAdvancedVisibilitySettingsWidget::listenAxesGridVisible);
+    disconnect(setting, &VSFilterViewSettings::pointRenderingChanged, this, &VSDatasetInfoWidget::updatePointSettingVisibility);
+    disconnect(setting, &VSFilterViewSettings::pointSizeChanged, this, &VSDatasetInfoWidget::listenPointSize);
+    disconnect(setting, &VSFilterViewSettings::renderPointSpheresChanged, this, &VSDatasetInfoWidget::listenPointSphere);
+    disconnect(setting, &VSFilterViewSettings::gridVisibilityChanged, this, &VSDatasetInfoWidget::listenAxesGridVisible);
   }
 
   m_ViewSettings = settings;
 
   for(VSFilterViewSettings* setting : m_ViewSettings)
   {
-    connect(setting, &VSFilterViewSettings::pointRenderingChanged, this, &VSAdvancedVisibilitySettingsWidget::updatePointSettingVisibility);
-    connect(setting, &VSFilterViewSettings::pointSizeChanged, this, &VSAdvancedVisibilitySettingsWidget::listenPointSize);
-    connect(setting, &VSFilterViewSettings::renderPointSpheresChanged, this, &VSAdvancedVisibilitySettingsWidget::listenPointSphere);
-    connect(setting, &VSFilterViewSettings::gridVisibilityChanged, this, &VSAdvancedVisibilitySettingsWidget::listenAxesGridVisible);
+    connect(setting, &VSFilterViewSettings::pointRenderingChanged, this, &VSDatasetInfoWidget::updatePointSettingVisibility);
+    connect(setting, &VSFilterViewSettings::pointSizeChanged, this, &VSDatasetInfoWidget::listenPointSize);
+    connect(setting, &VSFilterViewSettings::renderPointSpheresChanged, this, &VSDatasetInfoWidget::listenPointSphere);
+    connect(setting, &VSFilterViewSettings::gridVisibilityChanged, this, &VSDatasetInfoWidget::listenAxesGridVisible);
   }
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::setViewWidget(VSAbstractViewWidget* viewWidget)
+void VSDatasetInfoWidget::setViewWidget(VSAbstractViewWidget* viewWidget)
 {
   m_ViewWidget = viewWidget;
 
@@ -137,47 +125,47 @@ void VSAdvancedVisibilitySettingsWidget::setViewWidget(VSAbstractViewWidget* vie
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::updateFilterInfo()
+void VSDatasetInfoWidget::updateDatasetInfo()
 {
-  if(m_ViewSettings.size() > 0)
+  if(m_Filters.size() > 0)
   {
-    m_Ui->pointSizeEdit->blockSignals(true);
-    m_Ui->pointSphereCheckBox->blockSignals(true);
-
-    int pointSize = VSFilterViewSettings::GetPointSize(m_ViewSettings);
-    m_Ui->pointSizeEdit->setText(QString::number(pointSize));
-
-    m_Ui->pointSphereCheckBox->setCheckState(VSFilterViewSettings::IsRenderingPointsAsSpheres(m_ViewSettings));
-
-    m_Ui->pointSizeEdit->blockSignals(false);
-    m_Ui->pointSphereCheckBox->blockSignals(false);
+    // Get the dataset info
+    VSAbstractFilter* filter = m_Filters.front();
+    QString infoString = filter->getInfoString(SIMPL::InfoStringFormat::HtmlFormat);
+    m_Ui->infoLabel->setText(infoString);
+  }
+  else
+  {
+    m_Ui->infoLabel->setText("");
   }
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::updateViewSettingInfo()
+void VSDatasetInfoWidget::updateFilterInfo()
+{
+  if(m_ViewSettings.size() > 0)
+  {
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSDatasetInfoWidget::updateViewSettingInfo()
 {
   // Clear the visualization settings if the current VSFilterViewSettings is null
   if(m_ViewSettings.size() == 0)
   {
-    updatePointSettingVisibility();
     return;
   }
-
-  listenPointSize();
-  listenPointSphere();
-  listenAxesGridVisible();
-
-  updatePointSettingVisibility();
-  updateAnnotationVisibility();
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::updatePointSettingVisibility()
+void VSDatasetInfoWidget::updatePointSettingVisibility()
 {
   bool visible = false;
   if(m_ViewSettings.size() > 0)
@@ -185,23 +173,21 @@ void VSAdvancedVisibilitySettingsWidget::updatePointSettingVisibility()
     visible = VSFilterViewSettings::IsRenderingPoints(m_ViewSettings);
   }
 
-  m_Ui->pointRenderingWidget->setVisible(visible);
   update();
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::updateAnnotationVisibility()
+void VSDatasetInfoWidget::updateAnnotationVisibility()
 {
   bool validData = VSFilterViewSettings::HasValidSettings(m_ViewSettings);
-  m_Ui->annotationWidget->setVisible(validData);
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::updatePointSize(QString pointSizeStr)
+void VSDatasetInfoWidget::updatePointSize(QString pointSizeStr)
 {
   if(m_ViewSettings.size() == 0)
   {
@@ -218,7 +204,7 @@ void VSAdvancedVisibilitySettingsWidget::updatePointSize(QString pointSizeStr)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::updateRenderPointSpheres(int checkState)
+void VSDatasetInfoWidget::updateRenderPointSpheres(int checkState)
 {
   if(m_ViewSettings.size() == 0)
   {
@@ -231,7 +217,7 @@ void VSAdvancedVisibilitySettingsWidget::updateRenderPointSpheres(int checkState
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::setAxesGridVisible(int checkState)
+void VSDatasetInfoWidget::setAxesGridVisible(int checkState)
 {
   if(m_ViewSettings.size() == 0)
   {
@@ -245,35 +231,23 @@ void VSAdvancedVisibilitySettingsWidget::setAxesGridVisible(int checkState)
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::listenPointSize(int size)
+void VSDatasetInfoWidget::listenPointSize(int size)
 {
   size = VSFilterViewSettings::GetPointSize(m_ViewSettings);
-
-  m_Ui->pointSizeEdit->blockSignals(true);
-  m_Ui->pointSizeEdit->setText(QString::number(size));
-  m_Ui->pointSizeEdit->blockSignals(false);
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::listenPointSphere(bool renderAsSpheres)
+void VSDatasetInfoWidget::listenPointSphere(bool renderAsSpheres)
 {
   Qt::CheckState checked = VSFilterViewSettings::IsRenderingPointsAsSpheres(m_ViewSettings);
-
-  m_Ui->pointSphereCheckBox->blockSignals(true);
-  m_Ui->pointSphereCheckBox->setCheckState(checked);
-  m_Ui->pointSphereCheckBox->blockSignals(false);
 }
 
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void VSAdvancedVisibilitySettingsWidget::listenAxesGridVisible(double show)
+void VSDatasetInfoWidget::listenAxesGridVisible(double show)
 {
   Qt::CheckState checked = VSFilterViewSettings::IsGridVisible(m_ViewSettings);
-
-  m_Ui->viewAxesGridCheckBox->blockSignals(true);
-  m_Ui->viewAxesGridCheckBox->setCheckState(checked);
-  m_Ui->viewAxesGridCheckBox->blockSignals(false);
 }

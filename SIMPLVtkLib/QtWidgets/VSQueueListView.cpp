@@ -93,7 +93,7 @@ void VSQueueListView::requestContextMenu(const QPoint& pos)
   QModelIndexList indexList = selectionModel()->selectedRows(VSQueueItem::ItemData::Contents);
   qSort(indexList);
 
-  //  VSQueueModel* model = VSQueueModel::Instance();
+  // VSQueueModel* model = VSQueueModel::Instance();
 
   QMenu menu;
   if(index.isValid())
@@ -106,22 +106,24 @@ void VSQueueListView::requestContextMenu(const QPoint& pos)
       menu.addAction(separator);
     }
 
-    menu.addAction("Reset Import", [=] { resetImporter(index); });
+    menu.exec(mapped);
+
+//    menu.addAction("Reset Import", [=] { resetImporter(index); });
   }
 
-  {
-    QAction* separator = new QAction(this);
-    separator->setSeparator(true);
-    menu.addAction(separator);
-  }
-  if(index.isValid())
-  {
-    menu.addAction("Clear Selected Import", [=] { clearImporter(index); });
-  }
-  menu.addAction("Clear All Imports", [=] { handleClearAllImports(); });
-  menu.addAction("Clear Completed Imports", [=] { handleClearCompletedImports(); });
+//  {
+//    QAction* separator = new QAction(this);
+//    separator->setSeparator(true);
+//    menu.addAction(separator);
+//  }
+//  if(index.isValid())
+//  {
+//    menu.addAction("Clear Selected Import", [=] { clearImporter(index); });
+//  }
+//  menu.addAction("Clear All Imports", [=] { handleClearAllImports(); });
+//  menu.addAction("Clear Completed Imports", [=] { handleClearCompletedImports(); });
 
-  menu.exec(mapped);
+//  menu.exec(mapped);
 }
 
 // -----------------------------------------------------------------------------
@@ -209,13 +211,13 @@ void VSQueueListView::stopImporter(const QModelIndex& index)
   VSAbstractImporter::Pointer importer = model->data(index, VSQueueModel::Roles::ImporterRole).value<VSAbstractImporter::Pointer>();
   if(importer->getState() == VSAbstractImporter::State::Executing)
   {
-    //    QString name = model->data(index, Qt::DisplayRole).toString();
-    //    QMessageBox::StandardButton selection = QMessageBox::warning(this, "Cancel Importer", tr("Item '%1' is currently importing.  Are you sure that you want to reset it?").arg(name),
-    //                                                                 QMessageBox::StandardButton::Yes | QMessageBox::StandardButton::No, QMessageBox::StandardButton::No);
-    //    if (selection == QMessageBox::StandardButton::No)
-    //    {
-    //      return;
-    //    }
+    // String name = model->data(index, Qt::DisplayRole).toString();
+    // MessageBox::StandardButton selection = QMessageBox::warning(this, "Cancel Importer", tr("Item '%1' is currently importing.  Are you sure that you want to reset it?").arg(name),
+    //                                                             QMessageBox::StandardButton::Yes | QMessageBox::StandardButton::No, QMessageBox::StandardButton::No);
+    // if(selection == QMessageBox::StandardButton::No)
+    // {
+    //   return;
+    // }
 
     importer->cancel();
   }

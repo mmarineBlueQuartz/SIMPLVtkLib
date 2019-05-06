@@ -69,5 +69,4 @@ private:
   QString m_FilePath;
   VSFileNameFilter* m_TextFilter = nullptr;
   VSDataSetFilter* m_DatasetFilter = nullptr;
-  ;
 };

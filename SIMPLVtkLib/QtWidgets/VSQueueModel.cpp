@@ -148,32 +148,32 @@ QVariant VSQueueModel::data(const QModelIndex& index, int role) const
   }
   else if(role == Qt::ForegroundRole)
   {
-    //    if(item->getHasErrors())
-    //    {
-    //      return styles->getQTreeViewItem_error_color();
-    //    }
+    // if(item->getHasErrors())
+    // {
+    //   return styles->getQTreeViewItem_error_color();
+    // }
 
-    //      return styles->getQTreeViewItem_color();
+    // return styles->getQTreeViewItem_color();
   }
   else if(role == Qt::ToolTipRole)
   {
-    //    QString path = item->getPath();
-    //    QFileInfo info(path);
-    //    if(!path.isEmpty())
-    //    {
-    //      if(!info.exists())
-    //      {
-    //        QString tooltip = tr("'%1' was not found on the file system.\nYou can either locate the file or delete the entry from the table.").arg(item->getPath());
-    //        return tooltip;
-    //      }
-    //      if(info.suffix().compare("json") == 0)
-    //      {
-    //        QString html = JsonFilterParametersReader::HtmlSummaryFromFile(path, nullptr);
-    //        return html;
-    //      }
-    //    }
+    // QString path = item->getPath();
+    // QFileInfo info(path);
+    // if(!path.isEmpty())
+    // {
+    //   if(!info.exists())
+    //   {
+    //     QString tooltip = tr("'%1' was not found on the file system.\nYou can either locate the file or delete the entry from the table.").arg(item->getPath());
+    //     return tooltip;
+    //   }
+    //   if(info.suffix().compare("json") == 0)
+    //   {
+    //     QString html = JsonFilterParametersReader::HtmlSummaryFromFile(path, nullptr);
+    //     return html;
+    //   }
+    // }
 
-    //    return QVariant();
+    // return QVariant();
   }
   else if(role == Qt::DecorationRole)
   {

@@ -83,7 +83,7 @@ QVariant DREAM3DFileTreeModel::data(const QModelIndex& index, int role) const
   }
 
   DREAM3DFileItem* item = getItem(index);
-  
+
   switch(role)
   {
   case Qt::DisplayRole:

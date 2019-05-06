@@ -89,7 +89,6 @@ void VSMainWidgetBase::connectSlots()
   // Signals from VSController should be on the main thread, so Qt5 connections should be safe
   connect(m_Controller, &VSController::filterAdded, this, &VSMainWidgetBase::filterAdded);
   connect(m_Controller, &VSController::filterRemoved, this, &VSMainWidgetBase::filterRemoved);
-  
   connect(m_Controller, &VSController::importDataQueueStarted, this, &VSMainWidgetBase::importDataQueueStarted);
   connect(m_Controller, &VSController::importDataQueueFinished, this, &VSMainWidgetBase::importDataQueueFinished);
 }
@@ -128,14 +127,14 @@ void VSMainWidgetBase::setupShortcuts()
   connect(addFilterRightShortcut, &QShortcut::activated, [=] { changeFilterSelected(VSAbstractViewWidget::FilterStepChange::NextSibling, true); });
 
   QShortcut* applyFilterShortcut = new QShortcut(QKeySequence(Qt::Key_Return), this);
-  // QShortcut* resetFilterShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
+  QShortcut* resetFilterShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
   QShortcut* deleteFilterShortcut = new QShortcut(QKeySequence(Qt::Key_Delete), this);
   applyFilterShortcut->setContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
-  // resetFilterShortcut->setContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
+  resetFilterShortcut->setContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
   deleteFilterShortcut->setContext(Qt::ShortcutContext::WidgetWithChildrenShortcut);
 
   connect(applyFilterShortcut, &QShortcut::activated, [=] { applyCurrentFilter(); });
-  // connect(resetFilterShortcut, &QShortcut::activated, [=] { resetCurrentFilter(); });
+  connect(resetFilterShortcut, &QShortcut::activated, [=] { resetCurrentFilter(); });
   connect(deleteFilterShortcut, &QShortcut::activated, [=] { deleteCurrentFilter(); });
 
   QShortcut* toggleVisibleShortcut = new QShortcut(QKeySequence(Qt::Key_Tab), this);
@@ -222,6 +221,14 @@ VSFilterSettingsWidget* VSMainWidgetBase::getFilterSettingsWidget() const
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+VSDatasetInfoWidget* VSMainWidgetBase::getDatasetInfoWidget() const
+{
+  return m_DatasetInfoWidget;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
 VSVisibilitySettingsWidget* VSMainWidgetBase::getVisibilitySettingsWidget() const
 {
   return m_VisibilitySettingsWidget;
@@ -271,6 +278,24 @@ void VSMainWidgetBase::setFilterSettingsWidget(VSFilterSettingsWidget* widget)
 
     m_FilterSettingsWidget->setFilters(getCurrentSelection());
     m_FilterSettingsWidget->setViewWidget(getActiveViewWidget());
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSMainWidgetBase::setDatasetInfoWidget(VSDatasetInfoWidget* widget)
+{
+  if(m_DatasetInfoWidget)
+  {
+    disconnect(this, &VSMainWidgetBase::selectedFiltersChanged, m_DatasetInfoWidget, &VSDatasetInfoWidget::setFilters);
+  }
+
+  m_DatasetInfoWidget = widget;
+
+  if(m_DatasetInfoWidget)
+  {
+    connect(this, &VSMainWidgetBase::selectedFiltersChanged, m_DatasetInfoWidget, &VSDatasetInfoWidget::setFilters);
   }
 }
 
@@ -373,6 +398,7 @@ void VSMainWidgetBase::setInfoWidget(VSInfoWidget* infoWidget)
 {
   if(infoWidget)
   {
+    setDatasetInfoWidget(infoWidget->getDatasetInfoWidget());
     setFilterSettingsWidget(infoWidget->getFilterSettingsWidget());
     setVisibilitySettingsWidget(infoWidget->getVisibilitySettingsWidget());
     setColorMappingWidget(infoWidget->getColorMappingWidget());
@@ -845,29 +871,31 @@ void VSMainWidgetBase::reloadFilters(std::vector<VSAbstractDataFilter*> filters)
     if(success)
     {
       int err = 0;
-      DataContainerArrayProxy dcaProxy = reader->readDataContainerArrayStructure(nullptr, err);
+      SIMPLH5DataReaderRequirements req(SIMPL::Defaults::AnyPrimitive, SIMPL::Defaults::AnyComponentSize, AttributeMatrix::Type::Cell, IGeometry::Type::Any);
+      DataContainerArrayProxy dcaProxy = reader->readDataContainerArrayStructure(&req, err);
+      QMap<QString, DataContainerProxy>& dataContainers = dcaProxy.getDataContainers();
 
       for(size_t i = 0; i < filters.size(); i++)
       {
         VSSIMPLDataContainerFilter* validFilter = dynamic_cast<VSSIMPLDataContainerFilter*>(filters[i]);
 
-        DataContainerProxy dcProxy = dcaProxy.getDataContainers().value(validFilter->getFilterName());
+        if(dataContainers.contains(validFilter->getFilterName()))
+        {
+          validFilter->reloadData();
+        }
+        else
+        {
+          validFilter->removeFilter();
+        }
 
-        AttributeMatrixProxy::AMTypeFlags amFlags(AttributeMatrixProxy::AMTypeFlag::Cell_AMType);
-        DataArrayProxy::PrimitiveTypeFlags pFlags(DataArrayProxy::PrimitiveTypeFlag::Any_PType);
-        DataArrayProxy::CompDimsVector compDimsVector;
-
-        dcProxy.setFlags(Qt::Checked, amFlags, pFlags, compDimsVector);
-        dcaProxy.getDataContainers()[dcProxy.getName()] = dcProxy;
+        DataContainerProxy dcProxy = dataContainers.value(validFilter->getFilterName());
+        dcProxy.setFlag(Qt::Unchecked);
+        dataContainers[dcProxy.getName()] = dcProxy;
       }
 
       DataContainerArray::Pointer dca = reader->readSIMPLDataUsingProxy(dcaProxy, false);
       m_Controller->reloadDataContainerArray(fileNameFilter, dca);
     }
-  }
-  else
-  {
-    // This should not happen, so throw an error and bail!
   }
 }
 

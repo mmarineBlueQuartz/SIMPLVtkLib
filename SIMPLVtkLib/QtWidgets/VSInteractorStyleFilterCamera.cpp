@@ -43,6 +43,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 
+#include "SIMPLVtkLib/Visualization/VisualFilters/VSDataSetFilter.h"
 #include "SIMPLVtkLib/QtWidgets/VSAbstractViewWidget.h"
 #include "SIMPLVtkLib/QtWidgets/VSViewWidget.h"
 #include "SIMPLVtkLib/SIMPLBridge/VtkMacros.h"
@@ -55,7 +56,14 @@ vtkStandardNewMacro(VSInteractorStyleFilterCamera);
 // -----------------------------------------------------------------------------
 void VSInteractorStyleFilterCamera::OnLeftButtonDown()
 {
-  vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+  if(GetInteractionMode() == VTKIS_IMAGE2D)
+  {
+    vtkInteractorStyleImage::OnLeftButtonDown();
+  }
+  else
+  {
+    vtkInteractorStyleTrackballCamera::OnLeftButtonDown();
+  }
   updateLinkedRenderWindows();
 }
 
@@ -64,7 +72,14 @@ void VSInteractorStyleFilterCamera::OnLeftButtonDown()
 // -----------------------------------------------------------------------------
 void VSInteractorStyleFilterCamera::OnRightButtonDown()
 {
-  vtkInteractorStyleTrackballCamera::OnRightButtonDown();
+  if(GetInteractionMode() == VTKIS_IMAGE2D)
+  {
+    vtkInteractorStyleImage::OnRightButtonDown();
+  }
+  else
+  {
+    vtkInteractorStyleTrackballCamera::OnRightButtonDown();
+  }
   updateLinkedRenderWindows();
 
   determineSubsampling();
@@ -107,7 +122,14 @@ void VSInteractorStyleFilterCamera::OnMouseMove()
   }
   else
   {
-    vtkInteractorStyleTrackballCamera::OnMouseMove();
+    if(GetInteractionMode() == VTKIS_IMAGE2D)
+    {
+      vtkInteractorStyleImage::OnMouseMove();
+    }
+    else
+    {
+      vtkInteractorStyleTrackballCamera::OnMouseMove();
+    }
     updateLinkedRenderWindows();
   }
 }
@@ -118,7 +140,14 @@ void VSInteractorStyleFilterCamera::OnMouseMove()
 void VSInteractorStyleFilterCamera::OnMouseWheelForward()
 {
   determineSubsampling();
-  vtkInteractorStyleTrackballCamera::OnMouseWheelForward();
+  if(GetInteractionMode() == VTKIS_IMAGE2D)
+  {
+    vtkInteractorStyleImage::OnMouseWheelForward();
+  }
+  else
+  {
+    vtkInteractorStyleTrackballCamera::OnMouseWheelForward();
+  }
   updateLinkedRenderWindows();
 }
 
@@ -128,7 +157,14 @@ void VSInteractorStyleFilterCamera::OnMouseWheelForward()
 void VSInteractorStyleFilterCamera::OnMouseWheelBackward()
 {
   determineSubsampling();
-  vtkInteractorStyleTrackballCamera::OnMouseWheelBackward();
+  if(GetInteractionMode() == VTKIS_IMAGE2D)
+  {
+    vtkInteractorStyleImage::OnMouseWheelBackward();
+  }
+  else
+  {
+    vtkInteractorStyleTrackballCamera::OnMouseWheelBackward();
+  }
   updateLinkedRenderWindows();
 }
 
@@ -432,6 +468,14 @@ void VSInteractorStyleFilterCamera::OnKeyDown()
     setAxis(Axis::None);
   }
   updateTransformText();
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSInteractorStyleFilterCamera::OnChar()
+{
+  // Do nothing
 }
 
 // -----------------------------------------------------------------------------

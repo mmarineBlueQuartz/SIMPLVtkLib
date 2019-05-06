@@ -39,9 +39,8 @@
 #include <QtCore/QFutureWatcher>
 #include <QtWidgets/QWizardPage>
 
-#include "SIMPLib/DataContainers/DataContainerArrayProxy.h"
-
 #include "SIMPLib/Common/SIMPLibSetGetMacros.h"
+#include "SIMPLib/DataContainers/DataContainerArrayProxy.h"
 
 #include "ui_SaveImageFilePage.h"
 

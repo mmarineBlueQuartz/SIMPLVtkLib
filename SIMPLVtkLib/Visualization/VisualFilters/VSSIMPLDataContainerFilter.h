@@ -75,6 +75,12 @@ public:
   virtual ~VSSIMPLDataContainerFilter();
 
   /**
+   * @brief Returns true if data set is a 2D image.  Returns false otherwise.
+   * @return
+   */
+  bool isFlatImage() override;
+
+  /**
    * @brief Returns the bounds of the vtkDataSet
    * @return
    */
@@ -170,6 +176,13 @@ public:
    * @return
    */
   static bool CompatibleWithParent(VSAbstractFilter* filter);
+
+  /**
+   * @brief getInfoString
+   * @return Returns a formatted string that contains general infomation about
+   * the filter.
+   */
+  QString getInfoString(SIMPL::InfoStringFormat format) const override;
 
 public slots:
   /**

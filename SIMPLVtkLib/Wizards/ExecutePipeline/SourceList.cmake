@@ -22,7 +22,6 @@ cmp_IDE_SOURCE_PROPERTIES( "${PROJECT_NAME}/Wizards" "${${PROJECT_NAME}_ExecuteP
 
 # Organize the Source files for things like Visual Studio and Xcode
 cmp_IDE_GENERATED_PROPERTIES("${PROJECT_NAME}/ExecutePipeline/UI_Files" "${${PROJECT_NAME}_ExecutePipeline_UIS}" "")
-
 # --------------------------------------------------------------------
 # -- Run UIC on the necessary files
 QT5_WRAP_UI( ${PROJECT_NAME}_ExecutePipeline_Generated_UI_HDRS ${${PROJECT_NAME}_ExecutePipeline_UIS} )

@@ -35,6 +35,8 @@
 
 #pragma once
 
+#include <QtCore/QDateTime>
+
 #include "SIMPLVtkLib/Dialogs/AbstractImportMontageDialog.h"
 
 #include "SIMPLib/DataContainers/DataContainerArrayProxy.h"
@@ -99,36 +101,6 @@ public:
    * @return
    */
   QString getDataArrayName();
-
-  /**
-   * @brief getTileOverlap
-   * @return
-   */
-  int getTileOverlap();
-
-  /**
-   * @brief getOverrideSpacing
-   * @return
-   */
-  bool getOverrideSpacing();
-
-  /**
-   * @brief getSpacing
-   * @return
-   */
-  std::tuple<double, double, double> getSpacing();
-
-  /**
-   * @brief getOverrideOrigin
-   * @return
-   */
-  bool getOverrideOrigin();
-
-  /**
-   * @brief getOrigin
-   * @return
-   */
-  std::tuple<double, double, double> getOrigin();
 
   /**
    * @brief getLoadProxy

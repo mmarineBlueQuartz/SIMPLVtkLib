@@ -588,6 +588,8 @@ void VSFilterViewSettings::setIsSelected(bool selected)
       actor->GetProperty()->SetEdgeColor(1.0, 1.0, 1.0);
     }
   }
+
+  emit requiresRender();
 }
 
 // -----------------------------------------------------------------------------
@@ -626,11 +628,11 @@ vtkActor* VSFilterViewSettings::getDataSetActor() const
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-vtkImageSliceMapper* VSFilterViewSettings::getImageMapper() const
+vtkDataSetMapper* VSFilterViewSettings::getImageMapper() const
 {
   if(ActorType::Image2D == m_ActorType && isValid())
   {
-    return dynamic_cast<vtkImageSliceMapper*>(m_Mapper.Get());
+    return dynamic_cast<vtkDataSetMapper*>(m_Mapper.Get());
   }
 
   return nullptr;
@@ -639,11 +641,11 @@ vtkImageSliceMapper* VSFilterViewSettings::getImageMapper() const
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-vtkImageSlice* VSFilterViewSettings::getImageSliceActor() const
+vtkActor* VSFilterViewSettings::getImageActor() const
 {
   if(ActorType::Image2D == m_ActorType && isValid())
   {
-    return dynamic_cast<vtkImageSlice*>(m_Actor.Get());
+    return dynamic_cast<vtkActor*>(m_Actor.Get());
   }
 
   return nullptr;
@@ -807,6 +809,7 @@ void VSFilterViewSettings::setActiveArrayName(const QString& name)
 
     emit activeArrayNameChanged(m_ActiveArrayName);
     emit componentNamesChanged();
+    emit requiresRender();
 
     updateScalarBarVisibility();
     updateTexture();
@@ -1058,13 +1061,13 @@ void VSFilterViewSettings::updateDataSetAlpha()
 // -----------------------------------------------------------------------------
 void VSFilterViewSettings::updateImageAlpha()
 {
-  vtkImageSlice* actor = getImageSliceActor();
+  vtkActor* actor = getImageActor();
   if(nullptr == actor)
   {
     return;
   }
 
-  vtkImageProperty* property = actor->GetProperty();
+  vtkProperty* property = actor->GetProperty();
   property->SetOpacity(m_Alpha);
   actor->SetProperty(property);
 }
@@ -1278,6 +1281,7 @@ void VSFilterViewSettings::setupImageActors()
   if(ActorType::DataSet == m_ActorType || nullptr == m_Actor)
   {
     mapper = vtkDataSetMapper::New();
+    m_OutlineFilter = VTK_PTR(vtkOutlineFilter)::New();
 
     actor = vtkActor::New();
     actor->SetMapper(mapper);
@@ -1293,6 +1297,17 @@ void VSFilterViewSettings::setupImageActors()
 
   mapper->SetInputConnection(plane->GetOutputPort());
 
+  m_OutlineFilter->SetInputConnection(plane->GetOutputPort());
+
+  if(getRepresentation() == Representation::Outline)
+  {
+    mapper->SetInputConnection(m_OutlineFilter->GetOutputPort());
+  }
+  else
+  {
+    mapper->SetInputConnection(plane->GetOutputPort());
+  }
+
   if(ActorType::DataSet == m_ActorType && isVisible())
   {
     emit swappingActors(m_Actor.Get(), actor);
@@ -1301,6 +1316,24 @@ void VSFilterViewSettings::setupImageActors()
   m_Mapper = mapper;
   m_Actor = actor;
   m_Plane = plane;
+
+  vtkImageData* imageData = dynamic_cast<vtkImageData*>(outputData.Get());
+  if(imageData)
+  {
+    double spacing[3];
+    imageData->GetSpacing(spacing);
+
+    // Get transform vectors
+    double scaling[3] = {spacing[0], spacing[1], spacing[2]};
+    VSTransform* transform = m_Filter->getTransform();
+    transform->setLocalScale(scaling);
+
+    // Save the initial transform
+    VSTransform* defaultTransform = getDefaultTransform();
+    defaultTransform->setLocalPosition(m_Filter->getTransform()->getLocalPosition());
+    defaultTransform->setLocalRotation(m_Filter->getTransform()->getLocalRotation());
+    defaultTransform->setLocalScale(m_Filter->getTransform()->getLocalScale());
+  }
 
   m_ActorType = ActorType::Image2D;
   updateTexture();
@@ -1314,7 +1347,7 @@ void VSFilterViewSettings::setupDataSetActors()
 {
   RenderBlocker renderBlocker(this);
   VTK_PTR(vtkDataSet) outputData = m_Filter->getOutput();
-  m_Plane = createPlaneSource(outputData.Get());
+  VTK_PTR(vtkPlaneSource) plane = createPlaneSource(outputData.Get());
 
   vtkDataSetMapper* mapper;
   vtkActor* actor;
@@ -1361,14 +1394,9 @@ void VSFilterViewSettings::setupDataSetActors()
   {
     mapper->SetInputConnection(m_OutlineFilter->GetOutputPort());
   }
-  else if(!isFlatImage())
-  {
-    mapper->SetInputConnection(m_DataSetFilter->GetOutputPort());
-  }
   else
   {
-    // mapper->SetInputConnection(m_DataSetFilter->GetOutputPort());
-    mapper->SetInputConnection(m_Plane->GetOutputPort());
+    mapper->SetInputConnection(m_DataSetFilter->GetOutputPort());
   }
   actor->SetMapper(mapper);
 
@@ -1412,8 +1440,10 @@ void VSFilterViewSettings::setupDataSetActors()
 
   m_Mapper = mapper;
   m_Actor = actor;
+  m_Plane = plane;
 
   m_ActorType = ActorType::DataSet;
+
   updateTransform();
 }
 
@@ -1480,12 +1510,7 @@ void VSFilterViewSettings::updateInputPort(VSAbstractFilter* filter)
     return;
   }
 
-  if(m_DataSetFilter)
-  {
-    m_DataSetFilter->SetInputConnection(filter->getTransformedOutputPort());
-    m_DataSetFilter->Update();
-  }
-  else
+  if(!m_DataSetFilter)
   {
     m_Mapper->SetInputConnection(filter->getOutputPort());
     m_Actor->SetUserTransform(m_Filter->getTransform()->getGlobalTransform());
@@ -1807,6 +1832,7 @@ void VSFilterViewSettings::importedData()
     setRepresentation(Representation::Surface);
   }
 
+  emit requiresRender();
   emit dataLoaded();
 }
 
@@ -2772,10 +2798,10 @@ void VSFilterViewSettings::inputUpdated(VSAbstractFilter* filter)
     {
       setActiveArrayName(pointData->GetArrayName(0));
     }
-	else
-	{
+    else
+    {
       setActiveArrayName(QString::Null());
-	}
+    }
   }
   updateTexture();
 }

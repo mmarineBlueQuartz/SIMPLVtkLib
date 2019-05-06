@@ -35,7 +35,7 @@
 
 #pragma once
 
-#include <vtkInteractorStyleTrackballCamera.h>
+#include <vtkInteractorStyleImage.h>
 #include <vtkProp3D.h>
 
 #include "SIMPLVtkLib/SIMPLVtkLib.h"
@@ -49,11 +49,11 @@ class VSAbstractViewWidget;
  * Filter selection is performed when the corresponding modifier key is held down.  The filter can then be
  * dragged around to modify its transformation until the mouse or modifier key is released.
  */
-class SIMPLVtkLib_EXPORT VSInteractorStyleFilterCamera : public vtkInteractorStyleTrackballCamera
+class SIMPLVtkLib_EXPORT VSInteractorStyleFilterCamera : public vtkInteractorStyleImage
 {
 public:
   static VSInteractorStyleFilterCamera* New();
-  vtkTypeMacro(VSInteractorStyleFilterCamera, vtkInteractorStyleTrackballCamera);
+  vtkTypeMacro(VSInteractorStyleFilterCamera, vtkInteractorStyleImage);
 
   using FilterProp = std::pair<vtkProp3D*, VSAbstractFilter*>;
 
@@ -81,6 +81,11 @@ public:
    * @brief Performs any necessary actions when the mouse is double clicked
    */
   void OnDoubleClick();
+
+  /**
+   * @brief Override and do nothing
+   */
+  void OnChar() override;
 
   /**
    * @brief Performs any necessary actions when the mouse wheel is scrolled backward
@@ -255,7 +260,10 @@ protected:
 
   /**
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> develop-BQ
    * @brief Resets the transform of the selected filter
    */
   void resetTransform();
@@ -281,6 +289,9 @@ protected:
   void deselectAllFilters();
 
   /**
+<<<<<<< HEAD
+>>>>>>> develop-BQ
+=======
 >>>>>>> develop-BQ
    * @brief Returns true if the CTRL key is down.  Returns false otherwise.
    * @return

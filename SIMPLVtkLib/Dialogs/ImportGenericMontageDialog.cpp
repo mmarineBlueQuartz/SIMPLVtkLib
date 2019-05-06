@@ -42,6 +42,7 @@
 #include <QtWidgets/QFileSystemModel>
 
 #include "SVWidgetsLib/QtSupport/QtSDisclosableWidget.h"
+#include "SVWidgetsLib/Widgets/SVStyle.h"
 
 // -----------------------------------------------------------------------------
 //
@@ -80,6 +81,9 @@ void ImportGenericMontageDialog::setupGui()
 
   updateOrderChoices(MontageSettings::MontageType::GridRowByRow);
 
+  SVStyle* style = SVStyle::Instance();
+  m_Ui->errLabel->setStyleSheet(tr("QLabel { color: %1; }").arg(style->getWidget_Error_color().name()));
+
   m_Ui->numOfRowsSB->setMinimum(1);
   m_Ui->numOfRowsSB->setMaximum(std::numeric_limits<int>().max());
 
@@ -95,6 +99,8 @@ void ImportGenericMontageDialog::setupGui()
   m_Ui->spacingX->setValidator(new QDoubleValidator);
   m_Ui->spacingY->setValidator(new QDoubleValidator);
   m_Ui->spacingZ->setValidator(new QDoubleValidator);
+
+  setDisplayType(AbstractImportMontageDialog::DisplayType::Outline);
 
   checkComplete();
 }
@@ -122,19 +128,10 @@ void ImportGenericMontageDialog::connectSignalsSlots()
   connect(m_Ui->tileListWidget, &TileListWidget::incrementIndexChanged, [=] { tileListWidgetChanged(); });
   connect(m_Ui->tileListWidget, &TileListWidget::paddingDigitsChanged, [=] { tileListWidgetChanged(); });
 
-  connect(m_Ui->outputTextFileNameLE, &QLineEdit::textChanged, [=] { checkComplete(); });
-
   connect(m_Ui->collectionTypeCB, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](int index) { updateOrderChoices(static_cast<MontageSettings::MontageType>(index)); });
 
   connect(m_Ui->orderCB, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [=](int index) { checkComplete(); });
 
-  connect(m_Ui->changeOriginCB, &QCheckBox::stateChanged, [=] {
-    bool isChecked = m_Ui->changeOriginCB->isChecked();
-    m_Ui->originX->setEnabled(isChecked);
-    m_Ui->originY->setEnabled(isChecked);
-    m_Ui->originZ->setEnabled(isChecked);
-  });
-  connect(m_Ui->changeOriginCB, &QCheckBox::stateChanged, this, &ImportGenericMontageDialog::changeOrigin_stateChanged);
   connect(m_Ui->originX, &QLineEdit::textChanged, [=] { checkComplete(); });
   connect(m_Ui->originY, &QLineEdit::textChanged, [=] { checkComplete(); });
   connect(m_Ui->originZ, &QLineEdit::textChanged, [=] { checkComplete(); });
@@ -165,22 +162,6 @@ void ImportGenericMontageDialog::tileListWidgetChanged()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-void ImportGenericMontageDialog::changeOrigin_stateChanged(int state)
-{
-  m_Ui->originX->setEnabled(state);
-  m_Ui->originY->setEnabled(state);
-  m_Ui->originZ->setEnabled(state);
-  if(state == false)
-  {
-    m_Ui->originX->setText("0");
-    m_Ui->originY->setText("0");
-    m_Ui->originZ->setText("0");
-  }
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
 void ImportGenericMontageDialog::changeSpacing_stateChanged(int state)
 {
   m_Ui->spacingX->setEnabled(state);
@@ -205,70 +186,34 @@ void ImportGenericMontageDialog::checkComplete() const
   {
     if(m_Ui->montageNameLE->text().isEmpty())
     {
+      m_Ui->errLabel->setText("The montage name is empty.");
       result = false;
     }
   }
 
-  if(m_Ui->numOfRowsSB->isEnabled())
+  QString tileListWidgetErrMsg;
+  if(!m_Ui->tileListWidget->isComplete(tileListWidgetErrMsg))
   {
-    if(m_Ui->numOfRowsSB->value() < m_Ui->numOfRowsSB->minimum() || m_Ui->numOfRowsSB->value() > m_Ui->numOfRowsSB->maximum())
-    {
-      result = false;
-    }
+    m_Ui->errLabel->setText(tileListWidgetErrMsg);
+    result = false;
   }
 
-  if(m_Ui->numOfColsSB->isEnabled())
+  int numberOfMontageTiles = m_Ui->numOfRowsSB->value() * m_Ui->numOfColsSB->value();
+  int numberOfSelectedTiles = m_Ui->tileListWidget->getCurrentNumberOfTiles();
+  if(numberOfSelectedTiles != numberOfMontageTiles)
   {
-    if(m_Ui->numOfColsSB->value() < m_Ui->numOfColsSB->minimum() || m_Ui->numOfColsSB->value() > m_Ui->numOfColsSB->maximum())
-    {
-      result = false;
-    }
-  }
-
-  if(m_Ui->tileOverlapSB->isEnabled())
-  {
-    if(m_Ui->tileOverlapSB->value() < m_Ui->tileOverlapSB->minimum() || m_Ui->tileOverlapSB->value() > m_Ui->tileOverlapSB->maximum())
-    {
-      result = false;
-    }
-  }
-
-  if(m_Ui->tileListWidget->isEnabled())
-  {
-    if(!m_Ui->tileListWidget->isComplete())
-    {
-      result = false;
-    }
-  }
-
-  if(m_Ui->outputTextFileNameLE->isEnabled())
-  {
-    if(m_Ui->outputTextFileNameLE->text().isEmpty())
-    {
-      result = false;
-    }
-  }
-
-  if(m_Ui->collectionTypeCB->isEnabled())
-  {
-    if(m_Ui->collectionTypeCB->currentIndex() < 0 || m_Ui->collectionTypeCB->currentIndex() > m_Ui->collectionTypeCB->maxCount() - 1)
-    {
-      result = false;
-    }
-  }
-
-  if(m_Ui->orderCB->isEnabled())
-  {
-    if(m_Ui->orderCB->currentIndex() < 0 || m_Ui->orderCB->currentIndex() > m_Ui->orderCB->maxCount() - 1)
-    {
-      result = false;
-    }
+    m_Ui->errLabel->setText(tr("The number of tiles in the tile list (%1) does not match the number of tiles declared in the montage (%2).\nPlease update"
+                               " the tile list as well as the 'Total Rows' and 'Total Columns' fields.")
+                                .arg(numberOfSelectedTiles)
+                                .arg(numberOfMontageTiles));
+    result = false;
   }
 
   if(m_Ui->originX->isEnabled())
   {
     if(m_Ui->originX->text().isEmpty())
     {
+      m_Ui->errLabel->setText("Origin X is empty.");
       result = false;
     }
   }
@@ -277,6 +222,7 @@ void ImportGenericMontageDialog::checkComplete() const
   {
     if(m_Ui->originY->text().isEmpty())
     {
+      m_Ui->errLabel->setText("Origin Y is empty.");
       result = false;
     }
   }
@@ -285,6 +231,7 @@ void ImportGenericMontageDialog::checkComplete() const
   {
     if(m_Ui->originZ->text().isEmpty())
     {
+      m_Ui->errLabel->setText("Origin Z is empty.");
       result = false;
     }
   }
@@ -293,6 +240,7 @@ void ImportGenericMontageDialog::checkComplete() const
   {
     if(m_Ui->spacingX->text().isEmpty())
     {
+      m_Ui->errLabel->setText("Spacing X is empty.");
       result = false;
     }
   }
@@ -301,6 +249,7 @@ void ImportGenericMontageDialog::checkComplete() const
   {
     if(m_Ui->spacingY->text().isEmpty())
     {
+      m_Ui->errLabel->setText("Spacing Y is empty.");
       result = false;
     }
   }
@@ -309,6 +258,7 @@ void ImportGenericMontageDialog::checkComplete() const
   {
     if(m_Ui->spacingZ->text().isEmpty())
     {
+      m_Ui->errLabel->setText("Spacing Z is empty.");
       result = false;
     }
   }
@@ -320,6 +270,7 @@ void ImportGenericMontageDialog::checkComplete() const
   }
 
   okBtn->setEnabled(result);
+  m_Ui->errLabel->setVisible(!result);
 }
 
 // -----------------------------------------------------------------------------
@@ -395,14 +346,6 @@ int ImportGenericMontageDialog::getTileOverlap()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-QString ImportGenericMontageDialog::getOutputFileName()
-{
-  return m_Ui->outputTextFileNameLE->text();
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
 MontageSettings::MontageType ImportGenericMontageDialog::getMontageType()
 {
   return static_cast<MontageSettings::MontageType>(m_Ui->collectionTypeCB->currentIndex());
@@ -439,14 +382,6 @@ std::tuple<double, double, double> ImportGenericMontageDialog::getSpacing()
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
-bool ImportGenericMontageDialog::getOverrideOrigin()
-{
-  return m_Ui->changeOriginCB->isChecked();
-}
-
-// -----------------------------------------------------------------------------
-//
-// -----------------------------------------------------------------------------
 std::tuple<double, double, double> ImportGenericMontageDialog::getOrigin()
 {
   double originX = m_Ui->originX->text().toDouble();
@@ -454,4 +389,22 @@ std::tuple<double, double, double> ImportGenericMontageDialog::getOrigin()
   double originZ = m_Ui->originZ->text().toDouble();
   std::tuple<double, double, double> origin = std::make_tuple(originX, originY, originZ);
   return origin;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void ImportGenericMontageDialog::changeOrigin_stateChanged(int state)
+{
+  m_Ui->originX->setEnabled(state);
+  m_Ui->originY->setEnabled(state);
+  m_Ui->originZ->setEnabled(state);
+  if(state == false)
+  {
+    m_Ui->originX->setText("0");
+    m_Ui->originY->setText("0");
+    m_Ui->originZ->setText("0");
+  }
+
+  checkComplete();
 }

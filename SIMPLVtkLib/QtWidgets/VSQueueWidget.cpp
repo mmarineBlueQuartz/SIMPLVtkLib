@@ -187,6 +187,12 @@ void VSQueueWidget::addDataImporter(const QString& name, VSAbstractImporter::Poi
   {
     queueModel->addImporter(name, importer, QIcon(":/SIMPL/icons/images/bullet_ball_blue.png"));
     queueModel->startQueue();
+    connect(importer.get(), &VSAbstractImporter::stateChanged, [=](VSAbstractImporter* dataImporter, VSAbstractImporter::State state) {
+      if(state == VSAbstractImporter::State::Finished)
+      {
+        removeDataImporter(importer);
+      }
+    });
   }
 }
 
@@ -201,7 +207,6 @@ void VSQueueWidget::insertDataImporter(int row, const QString& name, VSAbstractI
   }
 
   VSQueueModel* queueModel = getQueueModel();
-
   if(queueModel)
   {
     queueModel->insertImporter(row, name, importer, QIcon(":/SIMPL/icons/images/bullet_ball_blue.png"));
@@ -219,7 +224,6 @@ void VSQueueWidget::removeDataImporter(VSAbstractImporter::Pointer importer)
   }
 
   VSQueueModel* queueModel = getQueueModel();
-
   if(queueModel)
   {
     QPersistentModelIndex index = queueModel->indexOfImporter(importer);

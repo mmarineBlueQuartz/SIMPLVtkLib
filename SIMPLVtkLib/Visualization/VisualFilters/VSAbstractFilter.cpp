@@ -875,16 +875,14 @@ double* VSAbstractFilter::getTransformBounds()
     return getBounds();
   }
 
-  return m_TransformFilter->GetOutput()->GetBounds();
+  //return m_TransformFilter->GetOutput()->GetBounds();
 
-#if 0
   VTK_PTR(vtkTransformFilter) trans = VTK_PTR(vtkTransformFilter)::New();
   trans->SetInputConnection(getOutputPort());
   trans->SetTransform(getTransform()->getGlobalTransform());
   trans->ReleaseDataFlagOn();
   trans->Update();
   return trans->GetOutput()->GetBounds();
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -946,6 +944,7 @@ void VSAbstractFilter::readTransformJson(QJsonObject& json)
 
   VSTransform* transform = getTransform();
   transform->setLocalPosition(localPos);
+  transform->setOriginPosition(localPos);
   transform->setLocalRotation(localRot);
   transform->setLocalScale(localScale);
 }

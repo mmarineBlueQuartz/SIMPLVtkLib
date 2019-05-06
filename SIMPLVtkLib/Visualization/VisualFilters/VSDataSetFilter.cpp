@@ -109,6 +109,28 @@ VTK_PTR(vtkDataSet) VSDataSetFilter::getOutput() const
 // -----------------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------------
+bool VSDataSetFilter::isFlatImage()
+{
+  QFileInfo fi(m_FilePath);
+  QString ext = fi.completeSuffix().toLower();
+
+  QMimeDatabase db;
+  QMimeType mimeType = db.mimeTypeForFile(m_FilePath, QMimeDatabase::MatchContent);
+  QString mimeName = mimeType.name();
+
+  if(mimeType.name().startsWith("image/"))
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
 VSDataSetFilter* VSDataSetFilter::Create(const QString& filePath, QJsonObject& json, VSAbstractFilter* parent)
 {
   VSDataSetFilter* filter = new VSDataSetFilter(filePath, parent);
@@ -429,4 +451,12 @@ bool VSDataSetFilter::CompatibleWithParent(VSAbstractFilter* filter)
   }
 
   return false;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+QString VSDataSetFilter::getInfoString(SIMPL::InfoStringFormat format) const
+{
+  return QString();
 }

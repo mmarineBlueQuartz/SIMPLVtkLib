@@ -39,12 +39,12 @@
 #include <QtCore/QDir>
 #include <QtCore/QMimeDatabase>
 
+#include <QtWidgets/QFileSystemModel>
 #include "SIMPLib/Utilities/SIMPLDataPathValidator.h"
 #include "SVWidgetsLib/QtSupport/QtSFileCompleter.h"
 #include "SVWidgetsLib/QtSupport/QtSFileUtils.h"
 #include <QtWidgets/QCompleter>
 #include <QtWidgets/QFileDialog>
-#include <QtWidgets/QFileSystemModel>
 
 #include "ExecutePipeline/ExecutePipelineConstants.h"
 
@@ -73,8 +73,7 @@ PipelineExecutionTypeSelectionPage::~PipelineExecutionTypeSelectionPage() = defa
 // -----------------------------------------------------------------------------
 void PipelineExecutionTypeSelectionPage::setupGui()
 {
-  registerFields();
-
+  registerFields();  
   connectSignalsSlots();
 
   // Set the default radio button selection

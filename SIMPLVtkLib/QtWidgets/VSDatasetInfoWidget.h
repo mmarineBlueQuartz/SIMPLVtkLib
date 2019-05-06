@@ -42,24 +42,21 @@
 
 #include "SIMPLVtkLib/SIMPLVtkLib.h"
 
-namespace Ui
-{
-  class VSAdvancedVisibilitySettingsWidget;
-}
+#include "ui_VSDatasetInfoWidget.h"
 
 /**
- * @class VSAdvancedVisibilitySettingsWidget VSAdvancedVisibilitySettingsWidget.h
- * SIMPLVtkLib/QtWidgets/VSAdvancedVisibilitySettingsWidget.h
+ * @class VSDatasetInfoWidget VSDatasetInfoWidget.h
+ * SIMPLVtkLib/QtWidgets/VSDatasetInfoWidget.h
  * @brief This class handles miscellaneous visibility options for a filter or filters
  * in VSMainWidgetBase that do not fall under other categories
  */
-class SIMPLVtkLib_EXPORT VSAdvancedVisibilitySettingsWidget : public QWidget
+class SIMPLVtkLib_EXPORT VSDatasetInfoWidget : public QWidget
 {
   Q_OBJECT
 
 public:
-  VSAdvancedVisibilitySettingsWidget(QWidget* parent = nullptr);
-  virtual ~VSAdvancedVisibilitySettingsWidget() = default;
+  VSDatasetInfoWidget(QWidget* parent = nullptr);
+  virtual ~VSDatasetInfoWidget() = default;
 
   /**
    * @brief Changes the filters being displayed
@@ -122,6 +119,11 @@ protected:
   void updateFilterInfo();
 
   /**
+   * @brief Updates the information on the dataset
+   */
+  void updateDatasetInfo();
+
+  /**
    * @brief Updates the information on the VSFilterViewSettings
    */
   void updateViewSettingInfo();
@@ -143,7 +145,7 @@ protected:
   void connectFilterViewSettings(VSFilterViewSettings::Collection settings);
 
 private:
-  QSharedPointer<Ui::VSAdvancedVisibilitySettingsWidget> m_Ui;
+  QSharedPointer<Ui::VSDatasetInfoWidget> m_Ui;
   VSAbstractFilter::FilterListType m_Filters;
   VSAbstractViewWidget* m_ViewWidget = nullptr;
   VSFilterViewSettings::Collection m_ViewSettings;

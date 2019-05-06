@@ -220,7 +220,7 @@ void VSAbstractViewWidget::checkFilterViewSetting(VSFilterViewSettings* setting)
 
     changeFilterVisibility(setting, setting->isVisible());
     changeScalarBarVisibility(setting, setting->isScalarBarVisible());
-    
+
     if(tempRenderBlock)
     {
       m_BlockRender = false;

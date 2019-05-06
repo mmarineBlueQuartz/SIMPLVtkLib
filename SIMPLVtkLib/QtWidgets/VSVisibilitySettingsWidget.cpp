@@ -204,6 +204,9 @@ void VSVisibilitySettingsWidget::updateFilterInfo()
   {
     removeMultiValueOption(m_Ui->activeComponentCombo);
   }
+
+  m_Ui->activeArrayCombo->blockSignals(false);
+  m_Ui->activeComponentCombo->blockSignals(false);
 }
 
 // -----------------------------------------------------------------------------

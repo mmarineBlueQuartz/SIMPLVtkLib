@@ -90,12 +90,6 @@ public:
   int getTileOverlap();
 
   /**
-   * @brief getOutputFileName
-   * @return
-   */
-  QString getOutputFileName();
-
-  /**
    * @brief getMontageType
    * @return
    */
@@ -118,12 +112,6 @@ public:
    * @return
    */
   std::tuple<double, double, double> getSpacing();
-
-  /**
-   * @brief getOverrideOrigin
-   * @return
-   */
-  bool getOverrideOrigin();
 
   /**
    * @brief getOrigin

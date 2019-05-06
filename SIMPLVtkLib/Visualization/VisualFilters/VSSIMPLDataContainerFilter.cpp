@@ -46,6 +46,7 @@
 #include <vtkImageData.h>
 #include <vtkPointSet.h>
 #include <vtkTransformFilter.h>
+#include <vtkExtractVOI.h>
 
 #include "SIMPLib/Geometry/ImageGeom.h"
 #include "SIMPLib/Utilities/SIMPLH5DataReader.h"
@@ -90,6 +91,43 @@ VSSIMPLDataContainerFilter::~VSSIMPLDataContainerFilter()
   }
 
   delete m_DCValues;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSSIMPLDataContainerFilter::isFlatImage()
+{
+  // Check dimensions
+  SIMPLVtkBridge::WrappedDataContainerPtr wrappedDC = m_DCValues->getWrappedDataContainer();
+  if (nullptr == wrappedDC)
+  {
+    return false;
+  }
+
+  DataContainer::Pointer dc = wrappedDC->m_DataContainer;
+  if (nullptr == dc)
+  {
+    return false;
+  }
+
+  ImageGeom::Pointer imageGeom = dc->getGeometryAs<ImageGeom>();
+  if (nullptr == imageGeom)
+  {
+    return false;
+  }
+
+  SizeVec3Type dims = imageGeom->getDimensions();
+  int xDim = dims[0];
+  int yDim = dims[1];
+  int zDim = dims[2];
+
+  if(xDim <= 1 || yDim <= 1 || zDim <= 1)
+  {
+    return true;
+  }
+
+  return false;
 }
 
 // -----------------------------------------------------------------------------
@@ -217,6 +255,8 @@ void VSSIMPLDataContainerFilter::createFilter()
 {
   connect(&m_WrappingWatcher, SIGNAL(finished()), this, SLOT(reloadWrappingFinished()));
 
+  getTransform()->setLocalPosition(m_DCValues->getWrappedDataContainer()->m_Origin);
+  getTransform()->setOriginPosition(m_DCValues->getWrappedDataContainer()->m_Origin);
   updateTransformFilter();
 
   VTK_PTR(vtkDataSet) dataSet = m_DCValues->getWrappedDataContainer()->m_DataSet;
@@ -480,4 +520,15 @@ bool VSSIMPLDataContainerFilter::CompatibleWithParent(VSAbstractFilter* filter)
   }
 
   return false;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+QString VSSIMPLDataContainerFilter::getInfoString(SIMPL::InfoStringFormat format) const
+{
+  SIMPLVtkBridge::WrappedDataContainerPtr dcPtr = m_DCValues->getWrappedDataContainer();
+  DataContainer::Pointer dc = dcPtr->m_DataContainer;
+  IGeometry::Pointer geom = dc->getGeometry();
+  return geom->getInfoString(format);
 }

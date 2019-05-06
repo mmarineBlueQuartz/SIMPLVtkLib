@@ -36,10 +36,13 @@
 #pragma once
 
 #include <QtCore/QAbstractItemModel>
+#include <QtCore/QModelIndex>
+#include <QtCore/QVariant>
 
 #include "SIMPLib/Common/SIMPLibSetGetMacros.h"
 
-#include "QtWidgets/VSAbstractImporter.h"
+#include "SIMPLVtkLib/QtWidgets/VSAbstractImporter.h"
+#include "SIMPLVtkLib/SIMPLVtkLib.h"
 
 class VSQueueItem;
 class ImporterWorker;

@@ -37,6 +37,7 @@
 
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSFileNameValues.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSTextFilter.h"
+#include "SIMPLVtkLib/Visualization/VisualFilters/VSFileNameValues.h"
 
 /**
  * @class VSFileNameFilter VSFileNameFilter.h
@@ -119,6 +120,13 @@ public:
    * @return
    */
   static bool CompatibleWithParent(VSAbstractFilter* filter);
+
+  /**
+   * @brief getInfoString
+   * @return Returns a formatted string that contains general infomation about
+   * the filter.
+   */
+  QString getInfoString(SIMPL::InfoStringFormat format) const override;
 
 private:
   QString m_FilePath;

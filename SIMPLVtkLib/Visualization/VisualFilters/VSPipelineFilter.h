@@ -37,6 +37,7 @@
 
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSPipelineValues.h"
 #include "SIMPLVtkLib/Visualization/VisualFilters/VSTextFilter.h"
+#include "SIMPLVtkLib/Visualization/VisualFilters/VSPipelineValues.h"
 
 #include "SIMPLib/Filtering/FilterPipeline.h"
 
@@ -126,6 +127,13 @@ public:
    * @brief Imports data for all child VSSIMPLDataContainerFilter
    */
   void apply();
+
+  /**
+   * @brief getInfoString
+   * @return Returns a formatted string that contains general infomation about
+   * the filter.
+   */
+  QString getInfoString(SIMPL::InfoStringFormat format) const override;
 
 private:
   FilterPipeline::Pointer m_FilterPipeline;

@@ -296,7 +296,7 @@ void VSLoadHDF5DataWidget::setProxy(DataContainerArrayProxy proxy)
     for(int i = 0; i < rowCount; i++)
     {
       QModelIndex dcIndex = model->index(i, DREAM3DFileItem::Name);
-      //      m_Ui->treeView->expand(dcIndex);
+      // m_Ui->treeView->expand(dcIndex);
 
       if(model->getCheckState(dcIndex) == Qt::Checked)
       {
