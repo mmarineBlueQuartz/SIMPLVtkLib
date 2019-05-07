@@ -123,7 +123,7 @@ void VSQuadGeom::GetCellPoints(vtkIdType cellId, vtkIdList* ptIds)
 {
   const int numVerts = 4;
 
-  int64_t verts[numVerts];
+  size_t verts[numVerts];
   m_Geom->getVertsAtQuad(cellId, verts);
 
   ptIds->SetNumberOfIds(numVerts);
@@ -139,8 +139,7 @@ void VSQuadGeom::GetCellPoints(vtkIdType cellId, vtkIdList* ptIds)
 void VSQuadGeom::GetPointCells(vtkIdType ptId, vtkIdList* cellIds)
 {
   ElementDynamicList::Pointer elementsContainingList = m_Geom->getElementsContainingVert();
-
-  DynamicListArray<uint16_t, int64_t>::ElementList listArray = elementsContainingList->getElementList(ptId);
+  DynamicListArray<uint16_t, size_t>::ElementList listArray = elementsContainingList->getElementList(ptId);
 
   cellIds->SetNumberOfIds(listArray.ncells);
   for(int i = 0; i < listArray.ncells; i++)
