@@ -34,7 +34,10 @@
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QWidget" name="widget" native="true">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>Visualization Filters</string>
+      </property>
       <layout class="QGridLayout" name="gridLayout">
        <property name="leftMargin">
         <number>1</number>
@@ -51,40 +54,17 @@
        <property name="spacing">
         <number>4</number>
        </property>
-       <item row="1" column="0">
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="VSFilterView" name="visualFilterView">
+       <item row="0" column="0">
+        <widget class="VSFilterView" name="visualFilterView" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
            <horstretch>0</horstretch>
            <verstretch>1</verstretch>
           </sizepolicy>
          </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::ExtendedSelection</enum>
-         </property>
         </widget>
        </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Visualization Filters</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
+       <item row="1" column="0">
         <widget class="QWidget" name="widget_2" native="true">
          <layout class="QGridLayout" name="gridLayout_3">
           <property name="leftMargin">
@@ -159,7 +139,7 @@
          <x>0</x>
          <y>0</y>
          <width>229</width>
-         <height>185</height>
+         <height>365</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -179,7 +159,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="VSFilterSettingsWidget" name="vsFilterWidget">
+         <widget class="VSFilterSettingsWidget" name="vsFilterWidget" native="true">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
             <horstretch>0</horstretch>
@@ -211,8 +191,9 @@
  <customwidgets>
   <customwidget>
    <class>VSFilterView</class>
-   <extends>QTreeView</extends>
+   <extends>QWidget</extends>
    <header location="global">VSFilterView.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>SVScrollArea</class>
@@ -222,7 +203,7 @@
   </customwidget>
   <customwidget>
    <class>VSFilterSettingsWidget</class>
-   <extends>QFrame</extends>
+   <extends>QWidget</extends>
    <header location="global">VSFilterSettingsWidget.h</header>
    <container>1</container>
   </customwidget>

@@ -177,7 +177,7 @@ void VSAdvancedVisibilitySettingsWidget::updatePointSettingVisibility()
     visible = VSFilterViewSettings::IsRenderingPoints(m_ViewSettings);
   }
 
-  m_Ui->pointRenderingWidget->setVisible(visible);
+  m_Ui->pointRenderingGroupBox->setVisible(visible);
   update();
 }
 
@@ -187,7 +187,7 @@ void VSAdvancedVisibilitySettingsWidget::updatePointSettingVisibility()
 void VSAdvancedVisibilitySettingsWidget::updateAnnotationVisibility()
 {
   bool validData = VSFilterViewSettings::HasValidSettings(m_ViewSettings);
-  m_Ui->annotationWidget->setVisible(validData);
+  m_Ui->annotationGroupBox->setVisible(validData);
 }
 
 // -----------------------------------------------------------------------------
