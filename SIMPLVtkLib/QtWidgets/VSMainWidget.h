@@ -149,6 +149,17 @@ protected slots:
    */
   void importedFilterNum(int value);
 
+  /**
+   * @brief Listens for the current filter to change
+   * @param filter
+   */
+  void listenCurrentFilterChanged(VSAbstractFilter* filter) override;
+
+  /**
+   * @brief Updates the enable states for Create Filter buttons based on the current selection
+   */
+  void updateFilterButtons();
+
 private:
   class vsInternals;
   vsInternals* m_Internals;

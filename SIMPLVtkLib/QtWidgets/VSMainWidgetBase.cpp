@@ -631,7 +631,7 @@ void VSMainWidgetBase::setActiveView(VSAbstractViewWidget* viewWidget)
     connect(m_ActiveViewWidget, SIGNAL(viewWidgetClosed()), this, SLOT(activeViewClosed()));
     connect(m_ActiveViewWidget, SIGNAL(applyCurrentFilter()), this, SLOT(applyCurrentFilter()));
     connect(m_ActiveViewWidget, SIGNAL(resetCurrentFilter()), this, SLOT(resetCurrentFilter()));
-    connect(m_ActiveViewWidget, &VSAbstractViewWidget::currentFilterChanged, this, &VSMainWidgetBase::listenCurrentFilterChanged);
+    connect(m_ActiveViewWidget, SIGNAL(currentFilterChanged(VSAbstractFilter*)), this, SLOT(listenCurrentFilterChanged(VSAbstractFilter*)));
     connect(m_ActiveViewWidget, &VSAbstractViewWidget::selectionChanged, this, &VSMainWidgetBase::listenSelectionChanged);
 
     listenCurrentFilterChanged(m_ActiveViewWidget->getCurrentFilter());

@@ -96,6 +96,8 @@ void VSMainWidget::connectSlots()
   connect(getController(), &VSController::dataImported, this, [=] { resetCamera(); });
   connect(getController(), SIGNAL(applyingDataFilters(int)), this, SLOT(importNumFilters(int)));
   connect(getController(), SIGNAL(dataFilterApplied(int)), this, SLOT(importedFilterNum(int)));
+
+  connect(getActiveViewWidget(), &VSViewWidget::currentFilterUpdated, this, &VSMainWidget::updateFilterButtons);
 }
 
 // -----------------------------------------------------------------------------
@@ -132,7 +134,9 @@ void VSMainWidget::resetCamera()
 // -----------------------------------------------------------------------------
 void VSMainWidget::setActiveView(VSAbstractViewWidget* viewWidget)
 {
+  disconnect(getActiveViewWidget(), &VSViewWidget::currentFilterUpdated, this, &VSMainWidget::updateFilterButtons);
   VSMainWidgetBase::setActiveView(viewWidget);
+  connect(getActiveViewWidget(), &VSViewWidget::currentFilterUpdated, this, &VSMainWidget::updateFilterButtons);
 
   if(getActiveViewWidget() != nullptr)
   {
@@ -161,33 +165,16 @@ void VSMainWidget::setCurrentFilter(VSAbstractFilter* filter)
 {
   VSMainWidgetBase::setCurrentFilter(filter);
 
-  // Check if each Filter Type can be added
-  // Clip Filter
-  bool enableClip = VSClipFilter::CompatibleWithParent(filter);
-  m_Internals->clipBtn->setEnabled(enableClip);
-  m_ActionAddClip->setEnabled(enableClip);
+  updateFilterButtons();
+}
 
-  // Slice
-  bool enableSlice = VSSliceFilter::CompatibleWithParent(filter);
-  m_Internals->sliceBtn->setEnabled(enableSlice);
-  m_ActionAddSlice->setEnabled(enableSlice);
-
-  // Crop Filter
-  bool enableCrop = VSCropFilter::CompatibleWithParent(filter);
-  m_ActionAddCrop->setEnabled(enableCrop);
-
-  // Mask
-  bool enableMask = VSMaskFilter::CompatibleWithParent(filter);
-  m_ActionAddMask->setEnabled(enableMask);
-
-  // Threshold
-  bool enableThreshold = VSThresholdFilter::CompatibleWithParent(filter);
-  m_Internals->thresholdBtn->setEnabled(enableThreshold);
-  m_ActionAddThreshold->setEnabled(enableThreshold);
-
-  // Text
-  bool enableText = VSTextFilter::CompatibleWithParent(filter);
-  m_ActionAddText->setEnabled(enableText);
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSMainWidget::listenCurrentFilterChanged(VSAbstractFilter* filter)
+{
+  VSMainWidgetBase::listenCurrentFilterChanged(filter);
+  updateFilterButtons();
 }
 
 // -----------------------------------------------------------------------------
@@ -343,5 +330,58 @@ void VSMainWidget::importedFilterNum(int value)
   else
   {
     m_Internals->progressBar->setValue(value);
+  }
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSMainWidget::updateFilterButtons()
+{
+  VSAbstractFilter* currentFilter = getCurrentFilter();
+
+  // Clip Filter
+  bool enableClip = VSClipFilter::CompatibleWithParent(currentFilter);
+  m_Internals->clipBtn->setEnabled(enableClip);
+  if(m_ActionAddClip)
+  {
+    m_ActionAddClip->setEnabled(enableClip);
+  }
+
+  // Slice
+  bool enableSlice = VSSliceFilter::CompatibleWithParent(currentFilter);
+  m_Internals->sliceBtn->setEnabled(enableSlice);
+  if(m_ActionAddSlice)
+  {
+    m_ActionAddSlice->setEnabled(enableSlice);
+  }
+
+  // Crop Filter
+  if(m_ActionAddCrop)
+  {
+    bool enableCrop = VSCropFilter::CompatibleWithParent(currentFilter);
+    m_ActionAddCrop->setEnabled(enableCrop);
+  }
+
+  // Mask
+  if(m_ActionAddMask)
+  {
+    bool enableMask = VSMaskFilter::CompatibleWithParent(currentFilter);
+    m_ActionAddMask->setEnabled(enableMask);
+  }
+
+  // Threshold
+  if(m_ActionAddThreshold)
+  {
+    bool enableThreshold = VSThresholdFilter::CompatibleWithParent(currentFilter);
+    m_Internals->thresholdBtn->setEnabled(enableThreshold);
+    m_ActionAddThreshold->setEnabled(enableThreshold);
+  }
+
+  // Text
+  if(m_ActionAddText)
+  {
+    bool enableText = VSTextFilter::CompatibleWithParent(currentFilter);
+    m_ActionAddText->setEnabled(enableText);
   }
 }
