@@ -426,7 +426,7 @@ bool SIMPLVtkBridge::WrapAttrMatrixData(AttributeMatrix::Pointer attrMat, Wrappe
   }
 
   int numTuples = 0;
-  QVector<size_t> tupleDims = attrMat->getTupleDimensions();
+  std::vector<size_t> tupleDims = attrMat->getTupleDimensions();
   int count = tupleDims.size();
   for(int i = 0; i < count; i++)
   {
