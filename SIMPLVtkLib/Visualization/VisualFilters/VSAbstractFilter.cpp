@@ -1166,3 +1166,35 @@ bool VSAbstractFilter::HasPointData(VSAbstractFilter::FilterListType filters)
 
   return false;
 }
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+bool VSAbstractFilter::getInitialized() const
+{
+  return m_Initialized;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSAbstractFilter::setInitialized(bool value)
+{
+  m_Initialized = value;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+QJsonObject VSAbstractFilter::getLoadingObject() const
+{
+  return m_LoadingObject;
+}
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void VSAbstractFilter::setLoadingObject(const QJsonObject& value)
+{
+  m_LoadingObject = value;
+}

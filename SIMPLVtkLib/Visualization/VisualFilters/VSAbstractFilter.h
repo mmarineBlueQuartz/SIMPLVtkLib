@@ -111,9 +111,6 @@ public:
 
   using FilterListType = std::list<VSAbstractFilter*>;
 
-  SIMPL_INSTANCE_PROPERTY(QJsonObject, LoadingObject)
-  SIMPL_BOOL_PROPERTY(Initialized)
-
   /**
    * @brief Deconstructor
    */
@@ -123,6 +120,30 @@ public:
    * @brief Deletes the item and removes it from the model
    */
   Q_INVOKABLE virtual void deleteFilter();
+
+  /**
+   * @brief Getter property for LoadingObject
+   * @return
+   */
+  QJsonObject getLoadingObject() const;
+
+  /**
+   * @brief Setter property for LoadingObject
+   * @param value
+   */
+  void setLoadingObject(const QJsonObject& value);
+
+  /**
+   * @brief Getter property for Initialized
+   * @return
+   */
+  virtual bool getInitialized() const;
+
+  /**
+   * @brief Setter property for Initialized
+   * @param value
+   */
+  void setInitialized(bool value);
 
   /**
    * @brief Returns the item flags for the filter
@@ -574,6 +595,8 @@ private:
   QFont m_Font;
   Qt::ItemFlags m_Flags;
   QString m_DisplayText;
+  bool m_Initialized = {};
+  QJsonObject m_LoadingObject = {};
 };
 
 #ifdef __clang__
